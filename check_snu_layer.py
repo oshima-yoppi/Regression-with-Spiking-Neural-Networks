@@ -13,7 +13,7 @@ img_save_dir = "./imgs/"
 os.makedirs(img_save_dir, exist_ok=True)
     
 """ Build Spiking Neural Unit """
-num_time = 10 # simulation time step
+num_time = 100 # simulation time step
 V_th = 0.1
 tau = 25e-3 # sec
 dt = 1e-3 # sec
@@ -27,7 +27,7 @@ else:
 #device='cpu'
 print(device)
 
-snu_l = snu_layer.SNU(n_in=1, n_out=1 ,l_tau=(1-dt/tau),
+snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=(1-dt/tau),
                       soft=False, initial_bias=-V_th,gpu=gpu)
 #snu_l.Wx.W = torch.Tensor(np.array([[1.0]], dtype=np.float32))
 
@@ -35,17 +35,17 @@ snu_l = snu_layer.SNU(n_in=1, n_out=1 ,l_tau=(1-dt/tau),
 fr = 100 # Hz
 x = np.where(np.random.rand(1, num_time) < fr*dt, 1, 0)#(1, 100)
 x = np.expand_dims(x, 0).astype(np.float32)#(1, 1, 100)
-# 入力をnumpy からtensorにしてGPUにのせる
-#
+# 入力をnumpy からtensorにしてGPUにのせる#
 
 x = torch.from_numpy(x.astype(np.float32)).clone().to(device)
-print("x : ",x)
+
 print(x.shape)
 
 s_arr = np.zeros(num_time)
 y_arr = np.zeros(num_time) # array to save output
-
-for i in range(num_time):    
+print(x)
+for i in range(num_time):   
+    
     y = snu_l(x[:, :, i])
     #print("y : ",y)
     #print("snu_l : ",snu_l.s)

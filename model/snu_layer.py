@@ -42,7 +42,7 @@ class SNU(nn.Module):
         
         #self.Wx = torch.einsum("abc,cd->abd", (x_data, w1))
         #self.Wx = nn.Linear(4374, out_channels, bias=False).to(device)
-        self.Wx = nn.Linear(726, out_channels, bias=False).to(device)
+        self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
         #nn.init.uniform_(self.Wx.weight, -0.1, 0.1) #3.0
         torch.nn.init.xavier_uniform_(self.Wx.weight)
 
@@ -88,7 +88,7 @@ class SNU(nn.Module):
         #print("self.Wx(x).shape",self.Wx(x).shape)
         #print("self.s.shape : ",self.s.shape)
         s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
-        #print("s : ",s)
+        # print("s : ",s)
 
         if self.soft:
 
@@ -102,9 +102,9 @@ class SNU(nn.Module):
             #print("s.shape:", s.shape)
             #print("self.b.shape:", self.b.shape)
             #print("self.initial_bias.shape:",self.initial_bias.shape)
-            #print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
+            print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
             bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
-            #print("bias:",bias)
+            print("bias:",bias)
             #print("s in snu:",s)
             bias = s + self.b
 
