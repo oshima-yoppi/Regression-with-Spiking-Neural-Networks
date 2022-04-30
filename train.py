@@ -1,163 +1,206 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.nn.parameter as Parameter
-import torch.optim as optim
-from torch.autograd import Variable
-import torchvision
-from torch.utils.data import TensorDataset, DataLoader
-import sys
-import os
 import numpy as np
 import matplotlib.pyplot as plt
-# sys.path.append("/content/drive/My Drive/Colab_Notebooks/Pytorch_test/SNU_PyTorch")
+import torch
+import torchvision
+from torch import nn, optim
+from torch.nn import functional as F
+from torch.utils.data import TensorDataset, DataLoader
+from data import LoadDataset
+import os 
+from tqdm import tqdm
+# from rectangle_builder import rectangle,test_img
+import sys
+sys.path.append(r"C:\Users\aki\Documents\GitHub\deep\pytorch_test\snu")
 from model import snu_layer
 from model import network
 from tqdm import tqdm
-
-class TrainLoadDataset(torch.utils.data.Dataset):
-  def __init__(self, N=60000, dt=1e-3, num_time=100, max_fr=60):
-    root = os.path.expanduser("mnist")
-    train = torchvision.datasets.MNIST(root,train=True, transform=None, target_transform=None, download=True)
-    label = np.array(train.targets, dtype=np.int)
-    print("label : ",label.shape)
-    #label = label.type(torch.LongTensor)
+#from mp4_rec import record, rectangle_record
+import pandas as pd
+# import scipy.io
+# from torchsummary import summary
+import argparse
 
 
-    x = np.zeros((N, 784, num_time)) # 784 = 28 * 28
-    y = np.zeros(N)
-    train = np.array(train.data, dtype=np.float)
-    train = train.reshape(train.shape[0],-1)/255
-    
+parser = argparse.ArgumentParser()
+parser.add_argument('--batch', '-b', type=int, default=32)
+parser.add_argument('--epoch', '-e', type=int, default=100)
+parser.add_argument('--time', '-t', type=int, default=100,
+                        help='Total simulation time steps.')
+parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
+parser.add_argument('--forget', '-f', action='store_true' ,default=False) 
+parser.add_argument('--dual', '-d', action='store_true' ,default=False)
+args = parser.parse_args()
 
-    train_binary = np.heaviside(train[2],0)
-    #plt.imshow(train_binary.reshape(28,28))
-    for i in tqdm(range(N)):
-      fr = max_fr * np.repeat(np.expand_dims(np.heaviside(train[i],[0]),1),num_time,axis=1)
-      x[i] = np.where(np.random.rand(784, num_time) < fr*dt, 1, 0)
-      y[i] = label[i]
-    self.x = x.astype(np.float32)
-    self.y = y.astype(np.int8)
-    self.N = N
 
-  def __len__(self):
-    return self.N
+print("***************************")
+train_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "train" ,time = args.time)
+test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "test" ,time = args.time)
+data_id = 2
+#print(train_dataset[data_id][0]) #(784, 100) 
+train_iter = DataLoader(train_dataset, batch_size=args.batch, shuffle=False)
+test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=False)
 
-  def __getitem__(self, i):
-    return self.x[i], self.y[i]
-  
-class TestLoadDataset(torch.utils.data.Dataset):
-  def __init__(self, N=3000, dt=1e-3, num_time=100, max_fr=60):
-    root = os.path.expanduser("~/data/datasets/torch/mnist/test")
-    test = torchvision.datasets.MNIST(root,train=False, transform=None, target_transform=None, download=True)
-    label = np.array(test.targets, dtype=np.int)
-    x = np.zeros((N, 784, num_time)) # 784 = 28 * 28
-    y = np.zeros(N)
-    test = np.array(test.data, dtype=np.float)
-    test = test.reshape(test.shape[0],-1)/255
-    
+# ネットワーク設計
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# 畳み込みオートエンコーダー　リカレントSNN　
+model = network.SNU_Network(num_time=args.time,l_tau=0.8,rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 
-    test_binary = np.heaviside(test[2],0)
-    #plt.imshow(train_binary.reshape(28,28))
-    for i in tqdm(range(N)):
-      fr = max_fr * np.repeat(np.expand_dims(np.heaviside(test[i],[0]),1),num_time,axis=1)
-      x[i] = np.where(np.random.rand(784, num_time) < fr*dt, 1, 0)
-      y[i] = label[i]
-    self.x_ = x.astype(np.float32)
-    self.y_ = y.astype(np.int8)
-    self.N_ = N
+# 全結合 リカレントSNN
+# model = network.Fully_Connected_Gated_SNU_Net(rec=args.rec)
 
-  def __len__(self):
-    return self.N_
+# 全結合　畳み込みリカレントSNN
+#model = network.Gated_CSNU_Net()
 
-  def __getitem__(self, i):
-    return self.x_[i], self.y_[i]
+model = model.to(device)
+print("building model")
+print(model.state_dict().keys())
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
+epochs = args.epoch
 
-def main():
-  train_dataset = TrainLoadDataset(N=25600, dt=1e-3, num_time=100, max_fr=700)
-  test_dataset = TestLoadDataset(N=2560, dt=1e-3, num_time=100, max_fr=700)
-  # plot debig
-  data_id = 2
-  print("***************************==============")
-  print(np.array(train_dataset[data_id][0]).shape) #(784, 100) 
-  sum = np.sum(train_dataset[data_id][0],axis=1)
-  """
-  fig = plt.figure(figsize=(6,3))
-  ax1 = fig.add_subplot(1,2,1)
-  ax1.imshow(np.reshape(sum,(28,28)))
-  ax2 = fig.add_subplot(1,2,2)
-  ax2.imshow(np.reshape(train_dataset[data_id][0][:,0],(28,28)))
-  plt.show()
-  """
+loss_hist = []
+acc_hist_1 = []
+acc_hist_2 = []
+acc_hist_3 = []
+acc_hist_4 = []
+acc_hist_5 = []
+acc_eval_hist1 = []
+acc_eval_hist2 = []
+acc_eval_hist3 = []
+acc_eval_hist4 = []
+acc_eval_hist5 = []
 
-  train_iter = DataLoader(train_dataset, batch_size=256, shuffle=True)
-  test_iter = DataLoader(test_dataset, batch_size=256, shuffle=True)
-  #plt.imshow(np.reshape(dataset[1][0][:,0],(28,28)))
-  print("building model")
-  device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-  model = network.SNU_Network(n_in=784, n_mid=256, n_out=10, num_time=10, gpu=True)
-  model = model.to(device)
-  optimizer = optim.Adam(model.parameters(), lr=1e-4)
-  epochs = 100
-  loss_hist = []
-  acc_hist = []
-  for epoch in range(epochs):
+for epoch in tqdm(range(epochs)):
     running_loss = 0.0
     local_loss = []
-    acc = []
-    for i,(inputs, labels) in enumerate(train_iter, 0):
-      # zero the paramerter gradients
-      optimizer.zero_grad()
-      # forward + backward + optimize
-      inputs = inputs.to(device)
-      labels = labels.to(device,dtype=torch.int64)
-      #print("inputs shape:",inputs.shape)
-      #print("inputs shape:",inputs.shape)
-      #print("labels shape:",labels)
-      #print("type labels:",labels.device)
-      loss , pred= model(inputs,labels)
-      print("loss:",loss)
-      print("pred :",pred.shape)
-      print("labels:",labels.shape)
-
-      pred,_ = torch.max(pred,1)
-      
-      print("_ : ",_)
-      tmp = np.mean((_==labels).detach().cpu().numpy())
-      acc.append(tmp)
-      
-      
-
-
-      loss.backward()
-      optimizer.step()
-
-      # print statistics
-      running_loss += loss.item()
-      local_loss.append(loss.item())
-      if i % 100 == 99:
-        print('[{:d}, {:5d}] loss: {:.3f}'
-                    .format(epoch + 1, i + 1, running_loss / 100))
-        running_loss = 0.0
-    mean_acc = np.mean(acc)
-    mean_loss = np.mean(local_loss)
-    loss_hist.append(mean_loss)
-    acc_hist.append(mean_acc)
     
-  plt.figure(figsize=(3.3,2),dpi=150)
-  plt.plot(loss_hist)
-  plt.xlabel("epoch")
-  plt.ylabel("Loss")
-  plt.show()
-  print("finish")
-  
-  plt.figure(figsize=(3.3,2),dpi=150)
-  plt.plot(acc_hist)
-  plt.xlabel("epoch")
-  plt.ylabel("acc")
-  plt.show()
-  print("finish")
+    acc_1 = []
+    acc_2 = []
+    acc_3 = []
+    acc_4 = []
+    acc_5 = []
+    eval_acc_1 = []
+    eval_acc_2 = []
+    eval_acc_3 = []
+    eval_acc_4 = []
+    eval_acc_5 = []
 
-if __name__ == '__main__':
-    main()
+    print("EPOCH",epoch)
+    # モデル保存
+    if epoch == 0 :
+        torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
+        print("success model saving")
+    with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
+        for i,(inputs, labels, name) in enumerate(train_iter, 0):
+            optimizer.zero_grad()
 
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            torch.cuda.memory_summary(device=None, abbreviated=False)
+            loss, pred, _, iou, cnt = model(inputs, labels)
+            #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
+            pred,_ = torch.max(pred,1)
+            #print('IoU : ',iou)      
+            acc_1.append(iou[0]) #spike 3 以上
+            acc_2.append(iou[1])
+            acc_3.append(iou[2])
+            acc_4.append(iou[3])
+            acc_5.append(iou[4])
+    
+            torch.autograd.set_detect_anomaly(True)
+            loss.backward(retain_graph=True)
+            running_loss += loss.item()
+            local_loss.append(loss.item())
+            del loss
+            optimizer.step()
+
+            # print statistics
+            
+            
+            if i % 100 == 99:
+                print('[{:d}, {:5d}] loss: {:.3f}'
+                            .format(epoch + 1, i + 1, running_loss / 100))
+                running_loss = 0.0
+
+    
+    with torch.no_grad():
+        for i,(inputs, labels, name) in enumerate(test_iter, 0):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            loss, pred, _, iou, cnt = model(inputs, labels)
+            pred,_ = torch.max(pred,1)
+            eval_acc_1.append(iou[0])
+            eval_acc_2.append(iou[1])
+            eval_acc_3.append(iou[2])
+            eval_acc_4.append(iou[3])
+            eval_acc_5.append(iou[4])
+    
+
+    mean_acc_1 = np.mean(acc_1)
+    mean_acc_2 = np.mean(acc_2)
+    mean_acc_3 = np.mean(acc_3)
+    mean_acc_4 = np.mean(acc_4)
+    mean_acc_5 = np.mean(acc_5)
+    
+    mean_eval_acc_1 = np.mean(eval_acc_1)
+    mean_eval_acc_2 = np.mean(eval_acc_2)
+    mean_eval_acc_3 = np.mean(eval_acc_3)
+    mean_eval_acc_4 = np.mean(eval_acc_4)
+    mean_eval_acc_5 = np.mean(eval_acc_5)
+    
+    print("mean iou 3:4:5:6:7 ",mean_eval_acc_1,mean_eval_acc_2,mean_eval_acc_3,mean_eval_acc_4,mean_eval_acc_5,sep='--')
+    acc_hist_1.append(mean_acc_1)
+    acc_hist_2.append(mean_acc_2)
+    acc_hist_3.append(mean_acc_3)
+    acc_hist_4.append(mean_acc_4)
+    acc_hist_5.append(mean_acc_5)
+    
+    acc_eval_hist1.append(mean_eval_acc_1)
+    acc_eval_hist2.append(mean_eval_acc_2)
+    acc_eval_hist3.append(mean_eval_acc_3)
+    acc_eval_hist4.append(mean_eval_acc_4)
+    acc_eval_hist5.append(mean_eval_acc_5)
+    
+    mean_loss = np.mean(local_loss) 
+    print("mean loss",mean_loss)
+    loss_hist.append(mean_loss)
+
+# ログファイル二セーブ
+path_w = 'train_dataset_log.txt'
+with open(path_w, mode='w') as f:
+# <class '_io.TextIOWrapper'>
+    f.write(name[data_id])
+#lossの可視化
+
+fig = plt.figure(facecolor='oldlace')
+ax1 = fig.add_subplot(1,3,1)
+ax2 = fig.add_subplot(1,3,2)
+ax3 = fig.add_subplot(1,3,3)
+ax1.set_title('loss')
+ax1.plot(loss_hist)
+ax1.set_xlabel('EPOCH')
+ax1.set_ylabel('LOSS')
+
+ax2.set_title('train IOU')
+ax2.grid()
+ax2.plot(acc_hist_1,label='30')
+ax2.plot(acc_hist_2,label='40')
+ax2.plot(acc_hist_3,label='50')
+ax2.plot(acc_hist_4,label='60')
+ax2.plot(acc_hist_5,label='70')
+ax2.legend(loc=0)
+
+ax3.set_title('Evaluate IOU')
+ax3.grid()
+ax3.plot(acc_eval_hist1,label='30')
+ax3.plot(acc_eval_hist2,label='40')
+ax3.plot(acc_eval_hist3,label='50')
+ax3.plot(acc_eval_hist4,label='60')
+ax3.plot(acc_eval_hist5,label='70')
+fig.tight_layout()
+
+fig.savefig('models/loss--IOU.jpg')
+plt.show()
+
+torch.save(model.state_dict(), "models/models_state_dict_end.pth")
+ # モデル読み込み
+print("success model saving")
