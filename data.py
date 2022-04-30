@@ -24,8 +24,9 @@ import argparse
 import h5py
 
 class LoadDataset(Dataset):
-    def __init__(self, dir, time = 100, width = 240, height = 180):
+    def __init__(self, dir, which:str = "train", time = 100, width = 240, height = 180):
         self.dir = dir
+        self.which = which
         #h5ファイルのディレクトリのリスト
         self.dir_h5 = []
         self.width = width
@@ -35,6 +36,16 @@ class LoadDataset(Dataset):
             for file in files:
                 if file.endswith('.h5'):
                     self.dir_h5.append(os.path.join(self.dir, file)) 
+
+        "テストデータ"
+        self.divide = int((len(self.dir_h5)*0.8))
+        if which == "train":
+            self.dir_h5 = self.dir_h5[:self.divide]
+        elif which == "test":
+            self.dir_h5 = self.dir_h5[self.divide:]
+        else:
+            print("error by data.py")
+            exit()
         self.index = len(self.dir_h5)
         
     def __len__(self):
