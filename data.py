@@ -53,14 +53,8 @@ class LoadDataset(Dataset):
 
     def __getitem__(self, index):
         events = torch.zeros(2, self.time, self.width, self.height)
-        label = torch.zeros(3)
         with h5py.File(self.dir_h5[index], "r") as f:
-            self.label_ = f['truth'][()]
-            self.label_ = self.label_[1:-1]
-            self.label_ = self.label_.split(',')
-            label[0]= float(self.label_[0])
-            label[1] = float(self.label_[1])
-            label[2] = float(self.label_[2])
+            label = f['label'][()]
 
             self.events_ = f['events'][()]
             for i in self.events_:
@@ -72,3 +66,4 @@ if __name__ == "__main__":
     ru = a.__getitem__(2)
     print(ru)
     print(ru[0].shape)
+    

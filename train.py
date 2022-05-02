@@ -23,7 +23,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch', '-b', type=int, default=32)
-parser.add_argument('--epoch', '-e', type=int, default=100)
+parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
 parser.add_argument('--time', '-t', type=int, default=100,
                         help='Total simulation time steps.')
 parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
