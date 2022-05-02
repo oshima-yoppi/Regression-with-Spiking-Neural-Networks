@@ -116,6 +116,15 @@ class SNU(nn.Module):
         return y
 
 class Conv_SNU(nn.Module):
+    """
+    Args:
+        n_in (int): The number of input.
+        n_out (int): The number of output.
+        l_tau (floot): Degree of leak (From 0 to 1).
+        soft (bool): Change output activation to sigmoid func (True)
+                     or Step func. (False)
+        rec (bool): Adding recurrent connection or not.
+    """
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, l_tau=0.8, soft=False, rec=False, forget=False, dual=False,nobias=False, initial_bias=-0.5, gpu=True):
         super(Conv_SNU,self).__init__()
 
