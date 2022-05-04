@@ -147,7 +147,6 @@ class Conv_SNU(nn.Module):
         print("==== self.forget ====",self.forget)
         print(" ==== dual Gate ====",self.dual)
         if self.gpu:
-            
             dtype = torch.float
             device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         else:
@@ -252,6 +251,7 @@ class Conv_SNU(nn.Module):
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
             y = F.sigmoid(bias_)
+            
 
         else:
             axis = 0

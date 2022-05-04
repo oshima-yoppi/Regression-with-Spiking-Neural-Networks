@@ -36,10 +36,10 @@ print("***************************")
 train_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "train" ,time = args.time)
 test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "test" ,time = args.time)
 data_id = 2
-#print(train_dataset[data_id][0]) #(784, 100) 
+# print(train_dataset[data_id][0]) #(784, 100) 
 train_iter = DataLoader(train_dataset, batch_size=args.batch, shuffle=False)
 test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=False)
-print(train_iter.shape)
+# print(train_iter.shape)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
@@ -68,18 +68,6 @@ acc_eval_hist5 = []
 for epoch in tqdm(range(epochs)):
     running_loss = 0.0
     local_loss = []
-    
-    acc_1 = []
-    acc_2 = []
-    acc_3 = []
-    acc_4 = []
-    acc_5 = []
-    eval_acc_1 = []
-    eval_acc_2 = []
-    eval_acc_3 = []
-    eval_acc_4 = []
-    eval_acc_5 = []
-
     print("EPOCH",epoch)
     # モデル保存
     if epoch == 0 :
@@ -87,8 +75,10 @@ for epoch in tqdm(range(epochs)):
         print("success model saving")
     with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
         # for i,(inputs, labels, name) in enumerate(train_iter, 0):
-        for i ,(inputs, label) in enumerate(train_iter, 0):
-            print(inputs)
+        for i ,(inputs, labels) in enumerate(train_iter, 0):
+            
+            # print(inputs.size())#torch.Size([32, 2, 100, 240, 180])  
+            # print(labels.size())#torch.Size([32, 3])
             # print(inputs.)
             
 
@@ -99,12 +89,6 @@ for epoch in tqdm(range(epochs)):
             loss, pred, _, iou, cnt = model(inputs, labels)
             #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
             pred,_ = torch.max(pred,1)
-            #print('IoU : ',iou)      
-            acc_1.append(iou[0]) #spike 3 以上
-            acc_2.append(iou[1])
-            acc_3.append(iou[2])
-            acc_4.append(iou[3])
-            acc_5.append(iou[4])
     
             torch.autograd.set_detect_anomaly(True)
             loss.backward(retain_graph=True)
@@ -115,11 +99,6 @@ for epoch in tqdm(range(epochs)):
 
             # print statistics
             
-            
-            if i % 100 == 99:
-                print('[{:d}, {:5d}] loss: {:.3f}'
-                            .format(epoch + 1, i + 1, running_loss / 100))
-                running_loss = 0.0
 
     
     with torch.no_grad():
@@ -128,37 +107,12 @@ for epoch in tqdm(range(epochs)):
             labels = labels.to(device)
             loss, pred, _, iou, cnt = model(inputs, labels)
             pred,_ = torch.max(pred,1)
-            eval_acc_1.append(iou[0])
-            eval_acc_2.append(iou[1])
-            eval_acc_3.append(iou[2])
-            eval_acc_4.append(iou[3])
-            eval_acc_5.append(iou[4])
+            
     
 
-    mean_acc_1 = np.mean(acc_1)
-    mean_acc_2 = np.mean(acc_2)
-    mean_acc_3 = np.mean(acc_3)
-    mean_acc_4 = np.mean(acc_4)
-    mean_acc_5 = np.mean(acc_5)
+  
     
-    mean_eval_acc_1 = np.mean(eval_acc_1)
-    mean_eval_acc_2 = np.mean(eval_acc_2)
-    mean_eval_acc_3 = np.mean(eval_acc_3)
-    mean_eval_acc_4 = np.mean(eval_acc_4)
-    mean_eval_acc_5 = np.mean(eval_acc_5)
     
-    print("mean iou 3:4:5:6:7 ",mean_eval_acc_1,mean_eval_acc_2,mean_eval_acc_3,mean_eval_acc_4,mean_eval_acc_5,sep='--')
-    acc_hist_1.append(mean_acc_1)
-    acc_hist_2.append(mean_acc_2)
-    acc_hist_3.append(mean_acc_3)
-    acc_hist_4.append(mean_acc_4)
-    acc_hist_5.append(mean_acc_5)
-    
-    acc_eval_hist1.append(mean_eval_acc_1)
-    acc_eval_hist2.append(mean_eval_acc_2)
-    acc_eval_hist3.append(mean_eval_acc_3)
-    acc_eval_hist4.append(mean_eval_acc_4)
-    acc_eval_hist5.append(mean_eval_acc_5)
     
     mean_loss = np.mean(local_loss) 
     print("mean loss",mean_loss)
@@ -169,37 +123,7 @@ path_w = 'train_dataset_log.txt'
 with open(path_w, mode='w') as f:
 # <class '_io.TextIOWrapper'>
     f.write(name[data_id])
-#lossの可視化
 
-fig = plt.figure(facecolor='oldlace')
-ax1 = fig.add_subplot(1,3,1)
-ax2 = fig.add_subplot(1,3,2)
-ax3 = fig.add_subplot(1,3,3)
-ax1.set_title('loss')
-ax1.plot(loss_hist)
-ax1.set_xlabel('EPOCH')
-ax1.set_ylabel('LOSS')
-
-ax2.set_title('train IOU')
-ax2.grid()
-ax2.plot(acc_hist_1,label='30')
-ax2.plot(acc_hist_2,label='40')
-ax2.plot(acc_hist_3,label='50')
-ax2.plot(acc_hist_4,label='60')
-ax2.plot(acc_hist_5,label='70')
-ax2.legend(loc=0)
-
-ax3.set_title('Evaluate IOU')
-ax3.grid()
-ax3.plot(acc_eval_hist1,label='30')
-ax3.plot(acc_eval_hist2,label='40')
-ax3.plot(acc_eval_hist3,label='50')
-ax3.plot(acc_eval_hist4,label='60')
-ax3.plot(acc_eval_hist5,label='70')
-fig.tight_layout()
-
-fig.savefig('models/loss--IOU.jpg')
-plt.show()
 
 torch.save(model.state_dict(), "models/models_state_dict_end.pth")
  # モデル読み込み

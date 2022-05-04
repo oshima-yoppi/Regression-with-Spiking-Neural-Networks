@@ -24,7 +24,7 @@ import argparse
 import h5py
 
 class LoadDataset(Dataset):
-    def __init__(self, dir, which:str = "train", time = 100, width = 240, height = 180):
+    def __init__(self, dir, which:str = "train", time = 100, width = 128, height = 128):
         self.dir = dir
         self.which = which
         #h5ファイルのディレクトリのリスト
@@ -58,7 +58,8 @@ class LoadDataset(Dataset):
 
             self.events_ = f['events'][()]
             for i in self.events_:
-                events[ i[3], i[0], i[1], i[2]] = 1
+                ###events:(time, pol, x, y)
+                events[ i[3], i[0], i[2], i[1]] = 1
         return events, label
 
 if __name__ == "__main__":

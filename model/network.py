@@ -234,79 +234,45 @@ class SNU_Network(torch.nn.Module):
         self.l3.reset_state()
         self.l4.reset_state()
 
-    def iou_score(self, outputs, labels):
-        smooth = 1e-6
-        outputs = outputs.data.cpu().numpy() #outputs.shape: (128, 1, 64, 64)
-        labels = labels.data.cpu().numpy() #labels.shape: (128, 1, 64, 64)
-        np.set_printoptions(threshold=np.inf)
-        outputs = outputs.squeeze(1) # BATCH*1*H*W => BATCH*H*W __outputs.shape : (128, 64, 64)
-        labels = labels.squeeze(1) #__labels.shape : (128, 64, 64)
-        #print("outputs : ",outputs)
-        iou = []
-        cnt = []
-        for i in range(2,7):
-            #i = i*10 # if t-70
-            output = np.where(outputs>i,1,0)
-            label = np.where(labels>0,1,0)
-            intersection = (np.uint64(output) & np.uint64(label)).sum((1,2)) # will be zero if Trueth=0 or Prediction=0
-            union = (np.uint64(output) | np.uint64(label)).sum((1,2)) # will be zero if both are 0
-        
-            iou.append((intersection + smooth) / (union + smooth))
-            cnt.append(i)
-        
-        return iou,cnt
+   
         
     def forward(self, x, y):
+        """
+        x: inputs
+        y: labels
+        """
+        print('11111111111111111111111')
         loss = None
         correct = 0
         sum_out = None
         dtype = torch.float
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        out = torch.zeros((self.batch_size, 1, 64, 64), device=device, dtype=dtype)
+        out = torch.zeros((self.batch_size, 1, 2), device=device, dtype=dtype)
         out_rec = [out]
         #print('out shape',out.shape)
         self._reset_state()
-        ht_spike_count = 0
-        h1_spike_count = 0
-        h2_spike_count = 0
-        h3_spike_count = 0
-        out_spike_count = 0
+    
 
         for t in range(self.num_time):
-            x_t = x[:,:,t]  #torch.Size([256, 784])
-            x_t = x_t.reshape((len(x_t), 1, 64, 64))
-            #print('x_t',x_t.shape)
+            # x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
+            # x_t = x_t.reshape((len(x_t), 2, 240, 180))
+            x_t = x[:, 0, t, :, :]  #torch.Size([256, 784])
+            x_t = x_t.reshape((len(x_t), 1, 240, 180))
+            print('x_t',x_t.shape)
             #print('x_t.sum',torch.sum(x_t))
 
             h1 = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64])  
-
+            # print(h1.shape)#torch.Size([32, 16, 240, 180])
             h1_ = F.max_pool2d(h1, 2) #h1_ :  torch.Size([256, 16, 32, 32])
             h2 = self.l2(h1_) #h2 :  torch.Size([256, 4, 32, 32])
-
             h2_ = F.max_pool2d(h2, 2)#h2 :  torch.Size([256, 16, 16, 16])
             h3 = self.l3(h2_)
-
             h3_ = self.up_samp(h3)
             out = self.l4(h3_) #out.shape torch.Size([256, 10]) # [バッチサイズ,output.shape]
-
             out_ = self.up_samp(out)
             out_rec.append(out_)
+        print("222222222222222222222")
 
-            if self.power:
-                ht_spike_count += torch.sum(x_t)
-                #print('torch.sum(x_t)',torch.sum(x_t))
-                #print('ht_spike_count',ht_spike_count)
-                #print('h1:',h1.shape)
-                h1_spike_count += torch.sum(h1)
-                #print('h2:',h2.shape)
-                h2_spike_count += torch.sum(h2)
-                #print('h3:',h3.shape)
-                h3_spike_count += torch.sum(h3)
-                #print('out:',out.shape)
-                out_spike_count += torch.sum(out)
-        
-        total_spike_count = [ht_spike_count,h1_spike_count,h2_spike_count,h3_spike_count,out_spike_count]
-                #print('total_spike_count shape : ',total_spike_count.shape)
 
         out_rec = torch.stack(out_rec,dim=1)
         #print("out_rec.shape",out_rec.shape) #out_rec.shape torch.Size([128, 21, 1, 64, 64]) ([バッチ,時間,分類])
@@ -323,14 +289,9 @@ class SNU_Network(torch.nn.Module):
         criterion = nn.MSELoss() # semantic segmantation
         loss = criterion(m, y)
         
-        #metabolic_cost = self.gamma*torch.sum(m**3)
-        #print("MSE_loss : metabplic_cost = ",loss,metabolic_cost)
-        #loss += metabolic_cost
-        iou,cnt= self.iou_score(m, y)
-        if self.power:
-            return loss, m, out_rec, iou, cnt, total_spike_count
-        else:
-            return loss, m, out_rec, iou, cnt
+        
+        
+        return loss, m, out_rec
         
 class SNU_Network_classification(torch.nn.Module):
     def __init__(self, n_in=784, n_mid=256, n_out=10,
