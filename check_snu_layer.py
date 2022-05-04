@@ -33,7 +33,7 @@ snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=(1-dt/tau),
 
 """ Generate Poisson Spike Trains """
 fr = 100 # Hz
-x = np.where(np.random.rand(1, num_time) < fr*dt, 1, 0)#(1, 100)
+x = np.where(np.random.rand(1, num_time) < fr*dt, 1, 0)#(1, 100)の配列が作られる
 x = np.expand_dims(x, 0).astype(np.float32)#(1, 1, 100)
 # 入力をnumpy からtensorにしてGPUにのせる#
 
