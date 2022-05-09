@@ -26,9 +26,10 @@ else:
     device = 'cpu'
 #device='cpu'
 print(device)
-
-snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=(1-dt/tau),
-                      soft=False, initial_bias=-V_th,gpu=gpu)
+tau_=(1-dt/tau)
+# tau_ = 1
+snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=tau_,
+                      soft=True, initial_bias=-V_th,gpu=gpu)
 #snu_l.Wx.W = torch.Tensor(np.array([[1.0]], dtype=np.float32))
 
 """ Generate Poisson Spike Trains """
@@ -52,8 +53,8 @@ for i in range(num_time):
 
     #s_arr[i] = snu_l.s.array
     s_arr[i] = snu_l.s
-    #y_arr[i] = y.array
-    y_arr[i] = y
+    y_arr[i] = snu_l.y
+    # y_arr[i] = y
 
 plt.savefig(img_save_dir+"Check_SNU_result.png")
 
