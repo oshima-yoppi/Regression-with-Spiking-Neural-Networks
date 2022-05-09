@@ -43,6 +43,7 @@ class SNU(nn.Module):
         #self.Wx = torch.einsum("abc,cd->abd", (x_data, w1))
         #self.Wx = nn.Linear(4374, out_channels, bias=False).to(device)
         self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
+        # print(self.Wx)
         #nn.init.uniform_(self.Wx.weight, -0.1, 0.1) #3.0
         torch.nn.init.xavier_uniform_(self.Wx.weight)
 
