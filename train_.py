@@ -43,7 +43,7 @@ test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=False)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
-model = network.SNU_Network(num_time=args.time,l_tau=0.8,rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model = network.SNU_Regression(num_time=args.time,l_tau=0.8,rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 
 
 
@@ -73,6 +73,7 @@ for epoch in tqdm(range(epochs)):
     if epoch == 0 :
         torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
         print("success model saving")
+        print(model)
     with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
         # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         for i ,(inputs, labels) in enumerate(train_iter, 0):

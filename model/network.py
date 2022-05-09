@@ -204,11 +204,11 @@ class Fully_Connected_Gated_SNU_Net(torch.nn.Module):
         out_rec =out_rec.reshape(128,21,64,64)
         return loss, m, out_rec, iou, cnt
 
-# 改(7/6~) NC_KEN 
-class SNU_Network(torch.nn.Module):
+# 改(05/08~)よｐっぴver　
+class SNU_Regression(torch.nn.Module):
     def __init__(self, num_time=20, l_tau=0.8, soft=False, rec=False, forget=False, dual=False, power=False, gpu=True,
                  batch_size=128):
-        super(SNU_Network, self).__init__()
+        super().__init__()
 
         
         self.num_time = num_time
@@ -217,22 +217,20 @@ class SNU_Network(torch.nn.Module):
         self.forget = forget
         self.dual = dual
         self.power = power
+        
 
         # Encoder layers
-        self.l1 = snu_layer.Conv_SNU(in_channels=1, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        self.l2 = snu_layer.Conv_SNU(in_channels=16, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        
-        # Decoder layers
-        self.l3 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        self.l4 = snu_layer.Conv_SNU(in_channels=16, out_channels=1, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        
+        self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        self.regression = snu_layer.SNU()
         self.up_samp = nn.Upsample(scale_factor=2, mode='nearest')
 
     def _reset_state(self):
         self.l1.reset_state()
         self.l2.reset_state()
-        self.l3.reset_state()
-        self.l4.reset_state()
+        # self.l3.reset_state()
+        # self.l3.reset_state()
+        # self.l4.reset_state()
 
    
         
@@ -256,21 +254,120 @@ class SNU_Network(torch.nn.Module):
         for t in range(self.num_time):
             # x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
             # x_t = x_t.reshape((len(x_t), 2, 240, 180))
-            x_t = x[:, 0, t, :, :]  #torch.Size([256, 784])
-            x_t = x_t.reshape((len(x_t), 1, 240, 180))
-            print('x_t',x_t.shape)
+            x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
+            x_t = x_t.reshape((len(x_t), 2, 128, 128))#torch.Size([6, 2, 128, 128])
             #print('x_t.sum',torch.sum(x_t))
 
-            h1 = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64])  
-            # print(h1.shape)#torch.Size([32, 16, 240, 180])
+            x_ = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64]) 
+            x_ = F.max_pool2d(x_, 2) #h1_ :  torch.Size([256, 16, 32, 32])
+            x_ = self.l2(x_) #h2 :  torch.Size([256, 4, 32, 32])
+            print(x_.size())#torch.Size([6, 1, 64, 64])
+            x_ = x_.view(self.batch_size, -1)
+            print(x_.size())#torch.Size([6, 1, 64, 64])
+            x_ = F.relu(self.fc1(x_))
+            x_ = F.relu(self.fc2(x_))
+            # print(x_.size())
+            x_ = self.fc3(x_)
+            # x_ = nn.Softmax(x_, dim = 0)
+            # print(x_)
+        print("222222222222222222222")
+
+        out = x_
+
+        out_rec = torch.stack(out_rec,dim=1)
+        #print("out_rec.shape",out_rec.shape) #out_rec.shape torch.Size([128, 21, 1, 64, 64]) ([バッチ,時間,分類])
+        #m,_=torch.sum(out_rec,1)
+        m =torch.sum(out_rec,1) #m.shape: torch.Size([256, 10]) for classifiartion
+        #m = m/self.num_time
+        # m : out_rec(21step)を時間軸で積算したもの
+        # 出力mと教師信号yの形式を統一する
+        y = y.reshape(len(x_t), 1, 64, 64)
+        #m = torch.where(m>0,1,0).to(torch.float32)
+        #y = torch.where((y>0)&(y<2),self.num_time//2,0).to(torch.float32)
+        y = torch.where(y>0,self.num_time,0).to(torch.float32)
+        criterion = nn.CrossEntropyLoss() #MNIST 
+        
+        loss = criterion(m, y)
+        
+        
+        
+        return loss, m, out_rec
+# 改(7/6~) NC_KEN 
+class SNU_Network(torch.nn.Module):
+    def __init__(self, num_time=20, l_tau=0.8, soft=False, rec=False, forget=False, dual=False, power=False, gpu=True,
+                 batch_size=128):
+        super(SNU_Network, self).__init__()
+
+        
+        self.num_time = num_time
+        self.batch_size = batch_size
+        self.rec = rec
+        self.forget = forget
+        self.dual = dual
+        self.power = power
+
+        # Encoder layers
+        self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=1, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        # self.l3 = snu_layer.Conv_SNU(in_channels=4, out_channels=1, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        
+        # # Decoder layers
+        # self.l3 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        # self.l4 = snu_layer.Conv_SNU(in_channels=16, out_channels=1, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        
+        self.up_samp = nn.Upsample(scale_factor=2, mode='nearest')
+
+    def _reset_state(self):
+        self.l1.reset_state()
+        self.l2.reset_state()
+        # self.l3.reset_state()
+        # self.l3.reset_state()
+        # self.l4.reset_state()
+
+   
+        
+    def forward(self, x, y):
+        """
+        x: inputs
+        y: labels
+        """
+        print('11111111111111111111111')
+        loss = None
+        correct = 0
+        sum_out = None
+        dtype = torch.float
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        out = torch.zeros((self.batch_size, 1, 2), device=device, dtype=dtype)
+        out_rec = [out]
+        #print('out shape',out.shape)
+        self._reset_state()
+    
+
+        for t in range(self.num_time):
+            # x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
+            # x_t = x_t.reshape((len(x_t), 2, 240, 180))
+            x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
+            x_t = x_t.reshape((len(x_t), 2, 128, 128))#torch.Size([6, 2, 128, 128])
+            #print('x_t.sum',torch.sum(x_t))
+
+            h1 = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64]) 
             h1_ = F.max_pool2d(h1, 2) #h1_ :  torch.Size([256, 16, 32, 32])
             h2 = self.l2(h1_) #h2 :  torch.Size([256, 4, 32, 32])
-            h2_ = F.max_pool2d(h2, 2)#h2 :  torch.Size([256, 16, 16, 16])
-            h3 = self.l3(h2_)
+            h2_ = F.max_pool2d(h2, 2)#h2 :  torch.Size([256, 4, 16, 16]
             h3_ = self.up_samp(h3)
             out = self.l4(h3_) #out.shape torch.Size([256, 10]) # [バッチサイズ,output.shape]
             out_ = self.up_samp(out)
             out_rec.append(out_)
+            # x_t = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64])  
+            # # print(h1.shape)#torch.Size([32, 16, 240, 180])
+            # x_t = F.max_pool2d(x_t, 2) #h1_ :  torch.Size([256, 16, 32, 32])
+            # x_t = self.l2(x_t) #h2 :  torch.Size([256, 4, 32, 32])
+            # x_t = F.max_pool2d(x_t, 2)#h2 :  torch.Size([256, 16, 16, 16])
+            # x_t = self.l3(x_t)
+            # x_t = self.up_samp(x_t)
+            # x_t = self.l4(x_t) #out.shape torch.Size([256, 10]) # [バッチサイズ,output.shape]
+            # x_t = self.up_samp(out)
+            # out_rec.append(x_t)
         print("222222222222222222222")
 
 
