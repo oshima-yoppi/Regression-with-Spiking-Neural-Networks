@@ -55,8 +55,8 @@ print(model.state_dict().keys())
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 epochs = args.epoch
 
-
-for epoch in tqdm(range(epochs)):
+loss_hist = []
+for epoch in range(epochs):
     running_loss = 0.0
     local_loss = []
     print("EPOCH",epoch)
@@ -65,41 +65,38 @@ for epoch in tqdm(range(epochs)):
         torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
         print("success model saving")
         print(model)
-    with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
+    # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
         # for i,(inputs, labels, name) in enumerate(train_iter, 0):
-        for i ,(inputs, labels) in enumerate(train_iter, 0):
-            
-            # print(inputs.size())#torch.Size([32, 2, 100, 240, 180])  
-            # print(labels.size())#torch.Size([32, 3])
-            # print(inputs.)
-            
+    for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
+        
 
-            optimizer.zero_grad()
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            torch.cuda.memory_summary(device=None, abbreviated=False)
-            # loss, pred, _, iou, cnt = model(inputs, labels)
-            output= model(inputs, labels)
-            los = loss.compute_loss(output, labels)
-            #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
-    
-            torch.autograd.set_detect_anomaly(True)
-            los.backward(retain_graph=True)
-            running_loss += los.item()
-            local_loss.append(los.item())
-            del los
-            optimizer.step()
+        optimizer.zero_grad()
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        torch.cuda.memory_summary(device=None, abbreviated=False)
+        # loss, pred, _, iou, cnt = model(inputs, labels)
+        output= model(inputs, labels)
+        los = loss.compute_loss(output, labels)
+        #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
 
-            # print statistics
+        torch.autograd.set_detect_anomaly(True)
+        los.backward(retain_graph=True)
+        running_loss += los.item()
+        local_loss.append(los.item())
+        del los
+        optimizer.step()
+
+        # print statistics
             
 
     
     with torch.no_grad():
-        for i,(inputs, labels, name) in enumerate(test_iter, 0):
+        for i,(inputs, labels) in enumerate(test_iter, 0):
             inputs = inputs.to(device)
             labels = labels.to(device)
-            loss, pred, _, iou, cnt = model(inputs, labels)
-            pred,_ = torch.max(pred,1)
+            output = model(inputs, labels)
+            los = loss.compute_loss(output, labels)
+            
             
     
 
@@ -112,10 +109,10 @@ for epoch in tqdm(range(epochs)):
     loss_hist.append(mean_loss)
 
 # ログファイル二セーブ
-path_w = 'train_dataset_log.txt'
+path_w = 'loss_hist.txt'
 with open(path_w, mode='w') as f:
-# <class '_io.TextIOWrapper'>
-    f.write(name[data_id])
+    for i , x in enumerate(loss_hist):
+        f.write(f"{i}: {x}\n")
 
 
 torch.save(model.state_dict(), "models/models_state_dict_end.pth")
