@@ -207,7 +207,7 @@ class Fully_Connected_Gated_SNU_Net(torch.nn.Module):
 # 改(05/08~)よｐっぴver　
 class SNU_Regression(torch.nn.Module):
     def __init__(self, num_time=20, l_tau=0.8, soft=False, rec=False, forget=False, dual=False, power=False, gpu=True,
-                 batch_size=128):
+                 batch_size=128, reg_n = 65536 ):
         super().__init__()
 
         
@@ -217,13 +217,10 @@ class SNU_Regression(torch.nn.Module):
         self.forget = forget
         self.dual = dual
         self.power = power
-        
-
         # Encoder layers
         self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
         self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        self.regression = snu_layer.SNU()
-        self.up_samp = nn.Upsample(scale_factor=2, mode='nearest')
+        self.reg = nn.Linear(reg_n, 1, bias = False)
 
     def _reset_state(self):
         self.l1.reset_state()
@@ -239,59 +236,33 @@ class SNU_Regression(torch.nn.Module):
         x: inputs
         y: labels
         """
-        print('11111111111111111111111')
         loss = None
         correct = 0
         sum_out = None
         dtype = torch.float
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        out = torch.zeros((self.batch_size, 1, 2), device=device, dtype=dtype)
-        out_rec = [out]
+        record = []
         #print('out shape',out.shape)
         self._reset_state()
     
 
         for t in range(self.num_time):
-            # x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
-            # x_t = x_t.reshape((len(x_t), 2, 240, 180))
-            x_t = x[:, :, t, :, :]  #torch.Size([256, 784])
+            x_t = x[:, :, t, :, :]  
             x_t = x_t.reshape((len(x_t), 2, 128, 128))#torch.Size([6, 2, 128, 128])
-            #print('x_t.sum',torch.sum(x_t))
-
-            x_ = self.l1(x_t) # h1 :  torch.Size([256, 16, 64, 64]) 
-            x_ = F.max_pool2d(x_, 2) #h1_ :  torch.Size([256, 16, 32, 32])
-            x_ = self.l2(x_) #h2 :  torch.Size([256, 4, 32, 32])
-            print(x_.size())#torch.Size([6, 1, 64, 64])
+            x_ = self.l1(x_t) 
+            x_ = F.max_pool2d(x_, 2) 
+            x_ = self.l2(x_) 
+            # print(x_.size())#torch.Size([6, 16, 64, 64])
             x_ = x_.view(self.batch_size, -1)
-            print(x_.size())#torch.Size([6, 1, 64, 64])
-            x_ = F.relu(self.fc1(x_))
-            x_ = F.relu(self.fc2(x_))
-            # print(x_.size())
-            x_ = self.fc3(x_)
-            # x_ = nn.Softmax(x_, dim = 0)
-            # print(x_)
-        print("222222222222222222222")
-
-        out = x_
-
-        out_rec = torch.stack(out_rec,dim=1)
-        #print("out_rec.shape",out_rec.shape) #out_rec.shape torch.Size([128, 21, 1, 64, 64]) ([バッチ,時間,分類])
-        #m,_=torch.sum(out_rec,1)
-        m =torch.sum(out_rec,1) #m.shape: torch.Size([256, 10]) for classifiartion
-        #m = m/self.num_time
-        # m : out_rec(21step)を時間軸で積算したもの
-        # 出力mと教師信号yの形式を統一する
-        y = y.reshape(len(x_t), 1, 64, 64)
-        #m = torch.where(m>0,1,0).to(torch.float32)
-        #y = torch.where((y>0)&(y<2),self.num_time//2,0).to(torch.float32)
-        y = torch.where(y>0,self.num_time,0).to(torch.float32)
-        criterion = nn.CrossEntropyLoss() #MNIST 
+            # print(x_.size())#torch.Size([BatchSize, 16*64*64?])
+            x_ = self.reg(x_)
+            record.append(x_)
+            
+        out_rec = torch.cat(record, dim = 1)
+        # print(out_rec.shape)#torch.Size([6, 100]) (batchsize, time)型のω
+        # print(out_rec)
         
-        loss = criterion(m, y)
-        
-        
-        
-        return loss, m, out_rec
+        return out_rec
 # 改(7/6~) NC_KEN 
 class SNU_Network(torch.nn.Module):
     def __init__(self, num_time=20, l_tau=0.8, soft=False, rec=False, forget=False, dual=False, power=False, gpu=True,
@@ -331,7 +302,7 @@ class SNU_Network(torch.nn.Module):
         x: inputs
         y: labels
         """
-        print('11111111111111111111111')
+        
         loss = None
         correct = 0
         sum_out = None

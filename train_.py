@@ -10,9 +10,11 @@ import os
 from tqdm import tqdm
 # from rectangle_builder import rectangle,test_img
 import sys
+
 sys.path.append(r"C:\Users\aki\Documents\GitHub\deep\pytorch_test\snu")
 from model import snu_layer
 from model import network
+from model import loss
 from tqdm import tqdm
 #from mp4_rec import record, rectangle_record
 import pandas as pd
@@ -53,17 +55,6 @@ print(model.state_dict().keys())
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 epochs = args.epoch
 
-loss_hist = []
-acc_hist_1 = []
-acc_hist_2 = []
-acc_hist_3 = []
-acc_hist_4 = []
-acc_hist_5 = []
-acc_eval_hist1 = []
-acc_eval_hist2 = []
-acc_eval_hist3 = []
-acc_eval_hist4 = []
-acc_eval_hist5 = []
 
 for epoch in tqdm(range(epochs)):
     running_loss = 0.0
@@ -87,15 +78,16 @@ for epoch in tqdm(range(epochs)):
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
-            loss, pred, _, iou, cnt = model(inputs, labels)
+            # loss, pred, _, iou, cnt = model(inputs, labels)
+            output= model(inputs, labels)
+            los = loss.compute_loss(output, labels)
             #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
-            pred,_ = torch.max(pred,1)
     
             torch.autograd.set_detect_anomaly(True)
-            loss.backward(retain_graph=True)
-            running_loss += loss.item()
-            local_loss.append(loss.item())
-            del loss
+            los.backward(retain_graph=True)
+            running_loss += los.item()
+            local_loss.append(los.item())
+            del los
             optimizer.step()
 
             # print statistics
