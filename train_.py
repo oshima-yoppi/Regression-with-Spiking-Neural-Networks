@@ -8,6 +8,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from data import LoadDataset
 import os 
 from tqdm import tqdm
+import datetime
 # from rectangle_builder import rectangle,test_img
 import sys
 
@@ -45,20 +46,23 @@ test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=False)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
-model = network.SNU_Regression(num_time=args.time,l_tau=0.8,rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft = True, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 
 
 
 model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+# optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-2)
 epochs = args.epoch
 
 loss_hist = []
-for epoch in range(epochs):
+test_hist = []
+for epoch in tqdm(range(epochs)):
     running_loss = 0.0
     local_loss = []
+    test_loss = []
     print("EPOCH",epoch)
     # モデル保存
     if epoch == 0 :
@@ -76,8 +80,9 @@ for epoch in range(epochs):
         torch.cuda.memory_summary(device=None, abbreviated=False)
         # loss, pred, _, iou, cnt = model(inputs, labels)
         output= model(inputs, labels)
+        # print(f"output.shape:{output.shape}")
+        # print(output)
         los = loss.compute_loss(output, labels)
-        #iou = 各発火閾値ごとに連なり[??(i=1),??(i=2),,,,]
 
         torch.autograd.set_detect_anomaly(True)
         los.backward(retain_graph=True)
@@ -96,6 +101,7 @@ for epoch in range(epochs):
             labels = labels.to(device)
             output = model(inputs, labels)
             los = loss.compute_loss(output, labels)
+            test_loss.append(los.item())
             
             
     
@@ -108,11 +114,33 @@ for epoch in range(epochs):
     print("mean loss",mean_loss)
     loss_hist.append(mean_loss)
 
+    test_mean_loss = np.mean(test_loss) 
+    test_hist.append(test_mean_loss)
+    
 # ログファイル二セーブ
 path_w = 'loss_hist.txt'
 with open(path_w, mode='w') as f:
+    now = datetime.datetime.now()
+    f.write(f'{now}\n')
     for i , x in enumerate(loss_hist):
         f.write(f"{i}: {x}\n")
+
+###ログのグラフ
+fig = plt.figure()
+ax1 = fig.add_subplot(1, 2, 1)
+ax2 = fig.add_subplot(1, 2, 2)
+ax1.plot(loss_hist)
+ax1.set_xlabel('epoch')
+ax1.set_ylabel('loss_hist')
+ax2.plot(test_hist)
+ax2.set_xlabel('epoch')
+ax2.set_ylabel('test_hist')
+plt.show()
+
+try:
+    print(output)
+except:
+    print("###########error!!!!!!!!!!!!!!!!!!!")
 
 
 torch.save(model.state_dict(), "models/models_state_dict_end.pth")

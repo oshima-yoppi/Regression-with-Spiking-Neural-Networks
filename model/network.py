@@ -220,7 +220,7 @@ class SNU_Regression(torch.nn.Module):
         # Encoder layers
         self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
         self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        self.reg = nn.Linear(reg_n, 1, bias = False)
+        self.reg = nn.Linear(reg_n, 1, bias = True)
 
     def _reset_state(self):
         self.l1.reset_state()
