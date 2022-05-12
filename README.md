@@ -15,7 +15,7 @@ conda create -n 環境名 -f conda_env.yml
 git clone https://github.com/oshima-yoppi/SNU-torch.git
 ```
 ## データセット
-[blender](https://github.com/oshima-yoppi/Blender)で物体が回転する動画を作成し、[v2e](https://github.com/oshima-yoppi/v2e)でイベントカメラのシミュレーションに変換させます。
+[blender](https://github.com/oshima-yoppi/Blender)で物体が回転する動画を作成。そこで作った動画を[v2e](https://github.com/oshima-yoppi/v2e)でイベントカメラバージョンに変換させる。
 
 ## 学習
 'train.py'を実行することで、イベントカメラデータを読み込んで、学習を行う。
