@@ -25,7 +25,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch', '-b', type=int, default=32)
+parser.add_argument('--batch', '-b', type=int, default=7)
 parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
 parser.add_argument('--time', '-t', type=int, default=100,
                         help='Total simulation time steps.')
@@ -59,63 +59,67 @@ epochs = args.epoch
 
 loss_hist = []
 test_hist = []
-for epoch in tqdm(range(epochs)):
-    running_loss = 0.0
-    local_loss = []
-    test_loss = []
-    print("EPOCH",epoch)
-    # モデル保存
-    if epoch == 0 :
-        torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
-        print("success model saving")
-        print(model)
-    # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
-        # for i,(inputs, labels, name) in enumerate(train_iter, 0):
-    for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
-        
+try:
 
-        optimizer.zero_grad()
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-        torch.cuda.memory_summary(device=None, abbreviated=False)
-        # loss, pred, _, iou, cnt = model(inputs, labels)
-        output= model(inputs, labels)
-        # print(f"output.shape:{output.shape}")
-        # print(output)
-        los = loss.compute_loss(output, labels)
-
-        torch.autograd.set_detect_anomaly(True)
-        los.backward(retain_graph=True)
-        running_loss += los.item()
-        local_loss.append(los.item())
-        del los
-        optimizer.step()
-
-        # print statistics
+    for epoch in tqdm(range(epochs)):
+        running_loss = 0.0
+        local_loss = []
+        test_loss = []
+        print("EPOCH",epoch)
+        # モデル保存
+        if epoch == 0 :
+            torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
+            print("success model saving")
+            print(model)
+        # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
+            # for i,(inputs, labels, name) in enumerate(train_iter, 0):
+        for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
             
 
-    
-    with torch.no_grad():
-        for i,(inputs, labels) in enumerate(test_iter, 0):
+            optimizer.zero_grad()
             inputs = inputs.to(device)
             labels = labels.to(device)
-            output = model(inputs, labels)
+            torch.cuda.memory_summary(device=None, abbreviated=False)
+            # loss, pred, _, iou, cnt = model(inputs, labels)
+            output= model(inputs, labels)
+            # print(f"output.shape:{output.shape}")
+            # print(output)
             los = loss.compute_loss(output, labels)
-            test_loss.append(los.item())
-            
-            
-    
 
-  
-    
-    
-    
-    mean_loss = np.mean(local_loss) 
-    print("mean loss",mean_loss)
-    loss_hist.append(mean_loss)
+            torch.autograd.set_detect_anomaly(True)
+            los.backward(retain_graph=True)
+            running_loss += los.item()
+            local_loss.append(los.item())
+            del los
+            optimizer.step()
 
-    test_mean_loss = np.mean(test_loss) 
-    test_hist.append(test_mean_loss)
+            # print statistics
+                
+
+        
+        with torch.no_grad():
+            for i,(inputs, labels) in enumerate(test_iter, 0):
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                output = model(inputs, labels)
+                los = loss.compute_loss(output, labels)
+                test_loss.append(los.item())
+                
+                
+        
+
+    
+        
+        
+        
+        mean_loss = np.mean(local_loss) 
+        print("mean loss",mean_loss)
+        loss_hist.append(mean_loss)
+
+        test_mean_loss = np.mean(test_loss) 
+        test_hist.append(test_mean_loss)
+except:
+    pass
     
 # ログファイル二セーブ
 path_w = 'loss_hist.txt'
@@ -124,6 +128,12 @@ with open(path_w, mode='w') as f:
     f.write(f'{now}\n')
     for i , x in enumerate(loss_hist):
         f.write(f"{i}: {x}\n")
+
+##　最後の出力結果の確認用
+print(output)
+
+
+
 
 ###ログのグラフ
 fig = plt.figure()
@@ -137,10 +147,7 @@ ax2.set_xlabel('epoch')
 ax2.set_ylabel('test_hist')
 plt.show()
 
-try:
-    print(output)
-except:
-    print("###########error!!!!!!!!!!!!!!!!!!!")
+
 
 
 torch.save(model.state_dict(), "models/models_state_dict_end.pth")

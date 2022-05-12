@@ -96,7 +96,8 @@ class SNU(nn.Module):
             axis = 1
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
-            y = F.sigmoid(bias_)
+            # y = F.sigmoid(bias_)
+            y = torch.sigmoid(bias_)
 
         else:
             axis = 0
@@ -223,7 +224,7 @@ class Conv_SNU(nn.Module):
         #print('=self.Wy(self.y)',self.Wy(self.y).shape)
         #print('=self.Wx(x)',self.Wx(x).shape)
         if self.rec:
-            print("rec yessss")
+            # print("rec yessss")
             #f = torch.sigmoid(self.Wf(x) + self.Rf(self.y))
             # spike 再入力ゲート
             i = torch.sigmoid(self.Wi(x) + self.Ri(self.y))
@@ -251,7 +252,7 @@ class Conv_SNU(nn.Module):
             axis = 1
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
-            y = F.sigmoid(bias_)
+            y = torch.sigmoid(bias_)
             
 
         else:
@@ -357,7 +358,7 @@ class tConv_SNU(nn.Module):
             axis = 1
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
-            y = F.sigmoid(bias_)
+            y = torch.sigmoid(bias_)
 
         else:
             axis = 0
