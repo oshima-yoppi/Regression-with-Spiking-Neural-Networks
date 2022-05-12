@@ -127,7 +127,7 @@ class Conv_SNU(nn.Module):
                      or Step func. (False)
         rec (bool): Adding recurrent connection or not.
     """
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, l_tau=0.8, soft=False, rec=False, forget=False, dual=False,nobias=False, initial_bias=-0.5, gpu=True):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=2, padding=0, l_tau=0.8, soft=False, rec=False, forget=False, dual=False,nobias=False, initial_bias=-0.5, gpu=True):
         super(Conv_SNU,self).__init__()
 
         self.in_channels = in_channels
