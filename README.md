@@ -15,7 +15,7 @@ conda create -n 環境名 -f conda_env.yml
 git clone https://github.com/oshima-yoppi/SNU-torch.git
 ```
 ## データセット
-[Blender](https://github.com/oshima-yoppi/Blender)で物体が回転する動画を作成。そこで作った動画を[v2e](https://github.com/oshima-yoppi/v2e)でイベントカメラバージョンに変換させる。
+[Blender](https://github.com/oshima-yoppi/Blender)で物体が回転する動画を作成。そこで作った動画を[v2e](https://github.com/oshima-yoppi/v2e)でイベントカメラバージョンに変換させることによってデータセットを作ります。
 
 ### blenderの使い方
 [Blender](https://github.com/oshima-yoppi/Blender)のサイトに書いてあります。
