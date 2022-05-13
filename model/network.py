@@ -40,7 +40,7 @@ class revisedSNU_Network(torch.nn.Module):
         self.l1.reset_state()
         self.l2.reset_state()
         self.l3.reset_state()
-        self.l4.reset_state()
+        self.l4.reset_state() 
 
     def iou_score(self, outputs, labels):
         smooth = 1e-6
