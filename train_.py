@@ -10,6 +10,7 @@ import os
 from tqdm import tqdm
 import datetime
 # from rectangle_builder import rectangle,test_img
+import traceback
 import sys
 
 sys.path.append(r"C:\Users\aki\Documents\GitHub\deep\pytorch_test\snu")
@@ -119,6 +120,7 @@ try:
         test_mean_loss = np.mean(test_loss) 
         test_hist.append(test_mean_loss)
 except:
+    traceback.print_exc()
     pass
     
 # ログファイル二セーブ
