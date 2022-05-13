@@ -217,17 +217,21 @@ class SNU_Regression(torch.nn.Module):
         self.forget = forget
         self.dual = dual
         self.power = power
+        n1 = 4096
+        n2 = 512
+        n3 = 1
         # Encoder layers
         self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
         self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
-        self.reg = nn.Linear(reg_n, 1, bias = True)
+        self.l3 = snu_layer.SNU(n1, n2, l_tau=l_tau, soft=soft, gpu=gpu)
+        self.l4 = snu_layer.SNU(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+        # elf.reg = nn.Linear(reg_n, 1, bias = True)
 
     def _reset_state(self):
         self.l1.reset_state()
         self.l2.reset_state()
-        # self.l3.reset_state()
-        # self.l3.reset_state()
-        # self.l4.reset_state()
+        self.l3.reset_state()
+        self.l4.reset_state()
 
    
         
@@ -254,8 +258,9 @@ class SNU_Regression(torch.nn.Module):
             x_ = self.l2(x_) 
             # print(x_.size())#torch.Size([6, 16, 64, 64])
             x_ = x_.view(self.batch_size, -1)
-            # print(x_.size())#torch.Size([BatchSize, 16*64*64?])
-            x_ = self.reg(x_)
+            # print(f'x_.size():{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
+            x_ = self.l3(x_)
+            x_ = self.l4(x_)
             record.append(x_)
             
         out_rec = torch.cat(record, dim = 1)
@@ -484,7 +489,7 @@ class Conv_SNU_Network_classification(torch.nn.Module):
         # 入力チャネル数 出力チャネル数 フィルタサイズ
         self.cn1 = snu_layer.Conv_SNU(in_channels=1, out_channels=6,kernel_size=10, l_tau=l_tau, soft=soft, gpu=gpu)
         self.l2 = snu_layer.SNU(in_channels=55, out_channels=2, l_tau=l_tau, soft=soft, gpu=gpu)
-       
+
         self.n_out = n_out
         self.num_time = num_time
         self.gamma = (1/(num_time*n_out))*1e-3
