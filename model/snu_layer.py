@@ -96,8 +96,8 @@ class SNU(nn.Module):
             axis = 1
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
-            # y = torch.sigmoid(bias_)###元々シグモイド関数。数値回帰のためにeluに変更
-            y = F.elu(bias_)
+            y = torch.sigmoid(bias_)###元々シグモイド関数。数値回帰のためにeluに変更
+            # y = F.elu(bias_)
 
         else:
             axis = 0

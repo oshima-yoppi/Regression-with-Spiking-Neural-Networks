@@ -41,8 +41,8 @@ train_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', whic
 test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "test" ,time = args.time)
 data_id = 2
 # print(train_dataset[data_id][0]) #(784, 100) 
-train_iter = DataLoader(train_dataset, batch_size=args.batch, shuffle=False)
-test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=False)
+train_iter = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 # print(train_iter.shape)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -75,18 +75,20 @@ try:
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
-            
-
+            # if i == 2:
+            #     break
             optimizer.zero_grad()
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
             # loss, pred, _, iou, cnt = model(inputs, labels)
             output= model(inputs, labels)
-            # print(f"output.shape:{output.shape}")
+            # print(f"output.shape:{output.shape}")###torch.Size([32, 100])
+            # kazu = torch.count_nonzero(inputs[0,1,:, :,:,] == 1.)
+            # print(f"sssssssssssssssssssss{kazu}")
             # print(output)
             los = loss.compute_loss(output, labels)
-
+            print(los)
             torch.autograd.set_detect_anomaly(True)
             los.backward(retain_graph=True)
             running_loss += los.item()
@@ -100,6 +102,8 @@ try:
         
         with torch.no_grad():
             for i,(inputs, labels) in enumerate(test_iter, 0):
+                # if i == 2:
+                #     break
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 output = model(inputs, labels)
