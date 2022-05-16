@@ -54,8 +54,8 @@ model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft = True, rec=ar
 model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
-# optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
+# optimizer = optim.Adam(model.parameters(), lr=1e-3)
 epochs = args.epoch
 
 loss_hist = []
@@ -75,20 +75,21 @@ try:
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
-            # if i == 2:
-            #     break
+            # if i < 74:
+            #     continue
             optimizer.zero_grad()
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
             # loss, pred, _, iou, cnt = model(inputs, labels)
             output= model(inputs, labels)
+
             # print(f"output.shape:{output.shape}")###torch.Size([32, 100])
             # kazu = torch.count_nonzero(inputs[0,1,:, :,:,] == 1.)
             # print(f"sssssssssssssssssssss{kazu}")
             # print(output)
             los = loss.compute_loss(output, labels)
-            print(los)
+            print(f'epoch:{epoch}  loss:{los}')
             torch.autograd.set_detect_anomaly(True)
             los.backward(retain_graph=True)
             running_loss += los.item()
