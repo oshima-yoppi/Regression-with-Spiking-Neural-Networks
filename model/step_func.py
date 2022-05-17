@@ -20,6 +20,7 @@ class SurrGradSpike(torch.autograd.Function):
         ctx.save_for_backward(input)
         out = torch.zeros_like(input)
         out[input > 0] = 1.0
+        # print(f"out:{out}")
         return out
         
     @staticmethod

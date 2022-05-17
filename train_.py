@@ -87,7 +87,7 @@ try:
             # print(f"output.shape:{output.shape}")###torch.Size([32, 100])
             # kazu = torch.count_nonzero(inputs[0,1,:, :,:,] == 1.)
             # print(f"sssssssssssssssssssss{kazu}")
-            # print(output)
+            print(output)
             los = loss.compute_loss(output, labels)
             print(f'epoch:{epoch}  loss:{los}')
             torch.autograd.set_detect_anomaly(True)

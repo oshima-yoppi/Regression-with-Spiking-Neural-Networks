@@ -88,7 +88,9 @@ class SNU(nn.Module):
         #print("x in snu.shape",x.shape) #x in snu.shape torch.Size([256, 784])        
         #print("self.Wx(x).shape",self.Wx(x).shape)
         #print("self.s.shape : ",self.s.shape)
-        s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
+        # s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
+        # s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
+        s = -self.Wx(x) + self.l_tau * self.s * (1-self.y)
         # print("s : ",s)
 
         if self.soft:
@@ -104,14 +106,15 @@ class SNU(nn.Module):
             #print("s.shape:", s.shape)
             #print("self.b.shape:", self.b.shape)
             #print("self.initial_bias.shape:",self.initial_bias.shape)
-            print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
+            # print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
             bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
-            print("bias:",bias)
+            # print("bias:",bias)
             #print("s in snu:",s)
             bias = s + self.b
+            print(bias)
 
-            y = step_func.spike_fn(bias)
-        
+            y = step_func.spike_fn(bias-0.3)
+        # print(self.s)
         self.s = s
         self.y = y
 
