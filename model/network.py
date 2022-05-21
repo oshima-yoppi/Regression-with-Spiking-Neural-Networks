@@ -225,13 +225,15 @@ class SNU_Regression(torch.nn.Module):
         self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
         # self.l3 = snu_layer.SNU(n1, n2, l_tau=l_tau, soft=soft, gpu=gpu)
         # self.l4 = snu_layer.SNU(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
-        self.l3 = nn.Linear(n1, n2, bias = True)
-        self.l4 = nn.Linear(n2, n3, bias = True)
+        # self.l3 = nn.Linear(n1, n2, bias = True)
+        # self.l4 = nn.Linear(n2, n3, bias = True)
+        self.l3 = snu_layer.SNU_None(n1, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+        # self.l4 = snu_layer.SNU_None(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
 
     def _reset_state(self):
         self.l1.reset_state()
         self.l2.reset_state()
-        # self.l3.reset_state()
+        self.l3.reset_state()
         # self.l4.reset_state()
 
    
@@ -259,9 +261,9 @@ class SNU_Regression(torch.nn.Module):
             x_ = self.l2(x_) 
             # print(x_.size())#torch.Size([6, 16, 64, 64])
             x_ = x_.view(self.batch_size, -1)
-            # print(f'x_.size():{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
+            # print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
             x_ = self.l3(x_)
-            x_ = self.l4(x_)
+            # x_ = self.l4(x_)
             # x_ *= 50
             record.append(x_)
             
