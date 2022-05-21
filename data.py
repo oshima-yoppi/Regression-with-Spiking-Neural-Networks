@@ -65,6 +65,8 @@ class LoadDataset(Dataset):
 if __name__ == "__main__":
     a = LoadDataset('C:/Users/oosim/Desktop/snn/v2e/output/')
     ru = a.__getitem__(2)
+    print('1111111111')
+    print(a.dir_h5[0])
     print(ru)
     print(ru[0].shape)
     
