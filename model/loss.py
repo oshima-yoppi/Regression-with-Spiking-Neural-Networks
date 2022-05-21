@@ -18,13 +18,17 @@ def compute_loss(input: torch.Tensor, label:torch.Tensor):
     # print("3333333333333333")
     # print(s)
     # print(input.shape)#torch.Size([batch size, 100])
-    print(len(input[-1]))
+    # print(len(input[-1])) # 100
     ### ３３％超えてからロスの平均計算するようにした。
-    input = input[:, len(input[-1]) // 3:]
+    # input = input[:, len(input[-1]) // 3:]
+    input = input[:, 80:]
     input = torch.mean(input, dim = 1)
+    # print(f'平均だよ {input}')
     label = label[:,0]
+    # print(f'labelだよ{label}')
     # print('input.shape', input.shape)
     # print('label.shape', label.shape)
+    # print(input-label)
     loss = torch.mean(torch.sqrt(torch.sum((input - label) ** 2)))
     return loss
 
