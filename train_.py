@@ -23,6 +23,7 @@ import pandas as pd
 # import scipy.io
 # from torchsummary import summary
 import argparse
+import time
 
 
 parser = argparse.ArgumentParser()
@@ -47,17 +48,17 @@ test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
-model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft = True, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 
 
 
 model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
-# optimizer = optim.Adam(model.parameters(), lr=1e-3)
+# optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 epochs = args.epoch
-
+before_loss = None
 loss_hist = []
 test_hist = []
 try:
@@ -89,13 +90,16 @@ try:
             # print(f"sssssssssssssssssssss{kazu}")
             print(output)
             los = loss.compute_loss(output, labels)
-            print(f'epoch:{epoch}  loss:{los}')
+            print(f'label:{labels[0,0]}, {labels[1,0]}')
+            print(f'epoch:{epoch+1}  loss:{los}') # 
+            print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
             torch.autograd.set_detect_anomaly(True)
             los.backward(retain_graph=True)
             running_loss += los.item()
             local_loss.append(los.item())
             del los
             optimizer.step()
+            
 
             # print statistics
                 
@@ -119,6 +123,7 @@ try:
         
         
         mean_loss = np.mean(local_loss) 
+        before_loss = mean_loss
         print("mean loss",mean_loss)
         loss_hist.append(mean_loss)
 
