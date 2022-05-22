@@ -29,9 +29,13 @@ def compute_loss(input: torch.Tensor, label:torch.Tensor):
     # print('input.shape', input.shape)
     # print('label.shape', label.shape)
     # print(input-label)
-    loss = torch.mean(torch.sqrt(torch.sum((input - label) ** 2)))
+    # loss = torch.mean(torch.sqrt(torch.sum((input - label) ** 2)))
+    # print('bbbbbbbbbbbbbbbbbbbbbbbbb')
+    # print(loss)
+    loss = torch.mean(torch.sqrt((input - label) ** 2))
+    # print('aaaaaaaaaaaaaaaaaaaaaaa')
+    # print(loss)
     return loss
-
 if __name__ == "__main__":
     a = torch.zeros(3,5
     )
