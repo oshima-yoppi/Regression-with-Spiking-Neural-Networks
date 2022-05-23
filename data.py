@@ -57,14 +57,20 @@ class LoadDataset(Dataset):
             label = f['label'][()]
 
             self.events_ = f['events'][()]
-            for i in self.events_:
+            for i_, i in enumerate(self.events_):
                 ###events:(time, pol, x, y)
+                if i[0] >= self.time:
+                    break
+                # print(i)
                 events[ i[3], i[0], i[2], i[1]] = 1
+                # print("asdfasdadassdfa")
         return events, label
 
 if __name__ == "__main__":
-    a = LoadDataset('C:/Users/oosim/Desktop/snn/v2e/output/')
+    a = LoadDataset('C:/Users/oosim/Desktop/snn/v2e/output/', time = 20)
     ru = a.__getitem__(2)
+    kazu = torch.count_nonzero(ru[0] == 1.)
+    print(f'kazu:{kazu}')
     print('1111111111')
     print(a.dir_h5[0])
     print(ru)
