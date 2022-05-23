@@ -58,11 +58,12 @@ class LoadDataset(Dataset):
 
             self.events_ = f['events'][()]
             for i_, i in enumerate(self.events_):
-                ###events:(time, pol, x, y)
+                ###i(h5ファイルから読み込まれるデータ):(timestep, y?, x?, pol)
                 if i[0] >= self.time:
                     break
                 # print(i)
                 events[ i[3], i[0], i[2], i[1]] = 1
+                ###events:(pol, time, x, y)
                 # print("asdfasdadassdfa")
         return events, label
 

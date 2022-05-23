@@ -45,7 +45,8 @@ class SNU(nn.Module):
         self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
         # print(self.Wx)
         # nn.init.uniform_(self.Wx.weight, -0.1, 0.1) #3.0
-        torch.nn.init.xavier_uniform_(self.Wx.weight)
+        # torch.nn.init.xavier_uniform_(self.Wx.weight)
+        # torch.nn.init.constant_(self.Wx.weight, 0.1)
         # print('77777777777777777')
         # print(self.Wx)
     
@@ -115,7 +116,7 @@ class SNU(nn.Module):
             bias = s + self.b
             # print(bias)
 
-            y = step_func.spike_fn(bias-0.3)
+            y = step_func.spike_fn(bias)
         # print(self.s)
         self.s = s
         self.y = y
@@ -152,7 +153,7 @@ class SNU_None(nn.Module):
         self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
         # print(self.Wx)
         # nn.init.uniform_(self.Wx.weight, -0.1, 0.1) #3.0
-        torch.nn.init.xavier_uniform_(self.Wx.weight)
+        # torch.nn.init.xavier_uniform_(self.Wx.weight)
         # print('77777777777777777')
         # print(self.Wx)
     
@@ -270,7 +271,7 @@ class Conv_SNU(nn.Module):
             device=torch.device("cpu")
 
         self.Wx = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=self.kernel_size, stride=self.stride, padding=self.padding, bias=False).to(device) #入力チャネル数, 出力チャネル数, フィルタサイズ
-        torch.nn.init.xavier_uniform_(self.Wx.weight)
+        # torch.nn.init.xavier_uniform_(self.Wx.weight)
         #print("self.rec in Conv_SNU",self.rec)
         if rec:
             print("recだよー")
