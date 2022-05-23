@@ -30,7 +30,7 @@ tau_=(1-dt/tau)
 # tau_ = 1
 snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=tau_,
                       soft=False, initial_bias=-V_th,gpu=gpu, rec=True)
-#snu_l.Wx.W = torch.Tensor(np.array([[1.0]], dtype=np.float32))
+# snu_l.Wx.W = torch.Tensor(np.array([[1.0]], dtype=np.float32))
 
 """ Generate Poisson Spike Trains """
 fr = 100 # Hz
@@ -45,6 +45,7 @@ print(x.shape)
 s_arr = np.zeros(num_time)
 y_arr = np.zeros(num_time) # array to save output
 print(x)
+# print(snu_l.weight)
 for i in range(num_time):   
     
     y = snu_l(x[:, :, i])
