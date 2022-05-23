@@ -217,7 +217,7 @@ class SNU_Regression(torch.nn.Module):
         self.forget = forget
         self.dual = dual
         self.power = power
-        n1 = 4096
+        n1 = 1024
         n2 = 512
         n3 = 1
         # Encoder layers
@@ -259,9 +259,10 @@ class SNU_Regression(torch.nn.Module):
             x_ = self.l1(x_t) 
             x_ = F.max_pool2d(x_, 2) 
             x_ = self.l2(x_) 
+            x_ = F.max_pool2d(x_, 2) 
             # print(x_.size())#torch.Size([6, 16, 64, 64])
             x_ = x_.view(self.batch_size, -1)
-            # print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
+            print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
             x_ = self.l3(x_)
             # x_ = self.l4(x_)
             # x_ *= 50
