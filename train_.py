@@ -56,7 +56,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-2)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
@@ -79,6 +79,7 @@ try:
             # if i < 74:
             #     continue
             optimizer.zero_grad()
+            inputs = inputs[:,:args.time]
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
