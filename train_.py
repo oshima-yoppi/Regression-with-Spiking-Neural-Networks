@@ -56,7 +56,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
@@ -147,10 +147,32 @@ print(output)
 
 
 
+torch.save(model.state_dict(), "models/models_state_dict_end.pth")
+ # モデル読み込み
+print("success model saving")
 
+
+def sqrt_(n):
+    return n ** 0.5
 ###ログのグラフ
 try:
 
+    time_ = (end_time - start_time)/(3600*epochs)
+    time_ = '{:.2f}'.format(time_)
+    fig = plt.figure(f'{time_}h/epoch')
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    loss_hist = list(map(sqrt_, loss_hist))
+    test_hist = list(map(sqrt_, test_hist))
+    ax1.plot(loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
+    plt.tight_layout()
+    plt.show()
+except:
     time_ = (end_time - start_time)/(3600*epochs)
     time_ = '{:.2f}'.format(time_)
     fig = plt.figure(f'{time_}h/epoch')
@@ -164,22 +186,7 @@ try:
     ax2.set_ylabel('test_hist')
     plt.tight_layout()
     plt.show()
-except:
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax2 = fig.add_subplot(1, 2, 2)
-    ax1.plot(loss_hist)
-    ax1.set_xlabel('epoch')
-    ax1.set_ylabel('loss_hist')
-    ax2.plot(test_hist)
-    ax2.set_xlabel('epoch')
-    ax2.set_ylabel('test_hist')
-    plt.show()
 
 
 
 
-
-torch.save(model.state_dict(), "models/models_state_dict_end.pth")
- # モデル読み込み
-print("success model saving")
