@@ -91,9 +91,9 @@ class SNU(nn.Module):
         #print("self.Wx(x).shape",self.Wx(x).shape)
         #print("self.s.shape : ",self.s.shape)
         # s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
-        # s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
+        s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
         # print(f'wx.shape:{self.Wx.shape}')
-        s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
+        # s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
         # print("s : ",s)
 
         if self.soft:
@@ -360,8 +360,8 @@ class Conv_SNU(nn.Module):
         else:
             #print("rec Noooooo")
             # s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
-            # s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
-            s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
+            s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
+            # s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
         #s = F.elu(abs(self.Wx(x)) + r * self.s * (1-self.y))
 
         if self.soft:
