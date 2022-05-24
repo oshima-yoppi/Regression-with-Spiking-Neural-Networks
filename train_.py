@@ -25,7 +25,7 @@ import pandas as pd
 import argparse
 import time
 
-
+start_time = time.time()
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch', '-b', type=int, default=7)
 parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
@@ -133,7 +133,7 @@ try:
 except:
     traceback.print_exc()
     pass
-    
+end_time = time.time()
 # ログファイル二セーブ
 path_w = 'loss_hist.txt'
 with open(path_w, mode='w') as f:
@@ -149,16 +149,33 @@ print(output)
 
 
 ###ログのグラフ
-fig = plt.figure()
-ax1 = fig.add_subplot(1, 2, 1)
-ax2 = fig.add_subplot(1, 2, 2)
-ax1.plot(loss_hist)
-ax1.set_xlabel('epoch')
-ax1.set_ylabel('loss_hist')
-ax2.plot(test_hist)
-ax2.set_xlabel('epoch')
-ax2.set_ylabel('test_hist')
-plt.show()
+try:
+
+    time_ = (end_time - start_time)/(3600*epochs)
+    time_ = '{:.2f}'.format(time_)
+    fig = plt.figure(f'{time_}h/epoch')
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax1.plot(loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
+    plt.tight_layout()
+    plt.show()
+except:
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax1.plot(loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
+    plt.show()
+
 
 
 
