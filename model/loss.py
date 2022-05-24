@@ -32,7 +32,7 @@ def compute_loss(input: torch.Tensor, label:torch.Tensor):
     # loss = torch.mean(torch.sqrt(torch.sum((input - label) ** 2)))
     # print('bbbbbbbbbbbbbbbbbbbbbbbbb')
     # print(loss)
-    loss = torch.mean(torch.sqrt((input - label) ** 2))
+    loss = torch.mean((input - label) ** 2)
     # print('aaaaaaaaaaaaaaaaaaaaaaa')
     # print(loss)
     return loss

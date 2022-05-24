@@ -56,7 +56,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=5e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 epochs = args.epoch
 before_loss = None
 loss_hist = []

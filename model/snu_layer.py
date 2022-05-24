@@ -359,7 +359,9 @@ class Conv_SNU(nn.Module):
             #print('s',s.shape)
         else:
             #print("rec Noooooo")
-            s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
+            # s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
+            # s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
+            s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
         #s = F.elu(abs(self.Wx(x)) + r * self.s * (1-self.y))
 
         if self.soft:
@@ -368,8 +370,6 @@ class Conv_SNU(nn.Module):
             bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
             #print("bias_:",bias_)
             y = torch.sigmoid(bias_)
-            
-
         else:
             axis = 0
             bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
