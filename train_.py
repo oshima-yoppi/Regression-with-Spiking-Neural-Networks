@@ -156,7 +156,12 @@ def sqrt_(n):
     return n ** 0.5
 ###ログのグラフ
 try:
-
+    ax1_x = []
+    for i in range(len(loss_hist)):
+        ax1_x.append(i+1)
+    ax2_x = []
+    for i in range(len(test_hist)):
+        ax2_x.append(i + 1)
     time_ = (end_time - start_time)/(3600*epochs)
     time_ = '{:.2f}'.format(time_)
     fig = plt.figure(f'{time_}h/epoch')
@@ -164,10 +169,10 @@ try:
     ax2 = fig.add_subplot(1, 2, 2)
     loss_hist = list(map(sqrt_, loss_hist))
     test_hist = list(map(sqrt_, test_hist))
-    ax1.plot(loss_hist)
+    ax1.plot(ax1_x, loss_hist)
     ax1.set_xlabel('epoch')
     ax1.set_ylabel('loss_hist')
-    ax2.plot(test_hist)
+    ax2.plot(ax2_x, test_hist)
     ax2.set_xlabel('epoch')
     ax2.set_ylabel('test_hist')
     plt.tight_layout()
@@ -178,6 +183,8 @@ except:
     fig = plt.figure(f'{time_}h/epoch')
     ax1 = fig.add_subplot(1, 2, 1)
     ax2 = fig.add_subplot(1, 2, 2)
+    loss_hist = list(map(sqrt_, loss_hist))
+    test_hist = list(map(sqrt_, test_hist))
     ax1.plot(loss_hist)
     ax1.set_xlabel('epoch')
     ax1.set_ylabel('loss_hist')
