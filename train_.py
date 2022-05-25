@@ -48,7 +48,8 @@ test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 # ネットワーク設計
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
-model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+# model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 
 
 
@@ -56,7 +57,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-2)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
