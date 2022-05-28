@@ -1,9 +1,9 @@
-import time
-a = time.time()
-
 import matplotlib.pyplot as plt
-b = 1241231234
-t = a-b
-t = '{:.2f}'.format(t)
-fi = plt.figure(f'{t}')
+a = [5,4,3,2,1]
+b = []
+for i in range(len(a)):
+    b.append(i + 1)
+fi = plt.figure()
+plt.plot(b,a)
+
 plt.show()

@@ -56,8 +56,8 @@ model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=a
 model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
-# optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-2)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
+# optimizer = optim.Adam(model.parameters(), lr=1e-3)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
@@ -77,14 +77,11 @@ try:
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
-            # if i < 74:
-            #     continue
             optimizer.zero_grad()
             inputs = inputs[:,:args.time]
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
-            # loss, pred, _, iou, cnt = model(inputs, labels)
             output= model(inputs, labels)
 
             # print(f"output.shape:{output.shape}")###torch.Size([32, 100])
@@ -92,7 +89,9 @@ try:
             # print(f"sssssssssssssssssssss{kazu}")
             print(output)
             los = loss.compute_loss(output, labels)
-            print(f'label:{labels[0,0]}, {labels[1,0]}')
+            
+            print(f'label:{labels[:,0]}')
+            # print(f'label:{labels[0,0]}, {labels[1,0]}')
             print(f'epoch:{epoch+1}  loss:{los}') # 
             print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
             torch.autograd.set_detect_anomaly(True)
@@ -103,19 +102,19 @@ try:
             optimizer.step()
             
 
-            # print statistics
+            # # print statistics
                 
 
         
         with torch.no_grad():
             for i,(inputs, labels) in enumerate(test_iter, 0):
-                # if i == 2:
-                #     break
+                # print(i)
                 inputs = inputs.to(device)
                 labels = labels.to(device)
                 output = model(inputs, labels)
                 los = loss.compute_loss(output, labels)
                 test_loss.append(los.item())
+                del los
                 
                 
         
@@ -123,12 +122,10 @@ try:
     
         
         
-        
         mean_loss = np.mean(local_loss) 
         before_loss = mean_loss
         print("mean loss",mean_loss)
         loss_hist.append(mean_loss)
-
         test_mean_loss = np.mean(test_loss) 
         test_hist.append(test_mean_loss)
 except:
@@ -156,44 +153,29 @@ print("success model saving")
 def sqrt_(n):
     return n ** 0.5
 ###ログのグラフ
-try:
-    ax1_x = []
-    for i in range(len(loss_hist)):
-        ax1_x.append(i+1)
-    ax2_x = []
-    for i in range(len(test_hist)):
-        ax2_x.append(i + 1)
-    time_ = (end_time - start_time)/(3600*epochs)
-    time_ = '{:.2f}'.format(time_)
-    fig = plt.figure(f'{time_}h/epoch')
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax2 = fig.add_subplot(1, 2, 2)
-    loss_hist = list(map(sqrt_, loss_hist))
-    test_hist = list(map(sqrt_, test_hist))
-    ax1.plot(ax1_x, loss_hist)
-    ax1.set_xlabel('epoch')
-    ax1.set_ylabel('loss_hist')
-    ax2.plot(ax2_x, test_hist)
-    ax2.set_xlabel('epoch')
-    ax2.set_ylabel('test_hist')
-    plt.tight_layout()
-    plt.show()
-except:
-    time_ = (end_time - start_time)/(3600*epochs)
-    time_ = '{:.2f}'.format(time_)
-    fig = plt.figure(f'{time_}h/epoch')
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax2 = fig.add_subplot(1, 2, 2)
-    loss_hist = list(map(sqrt_, loss_hist))
-    test_hist = list(map(sqrt_, test_hist))
-    ax1.plot(loss_hist)
-    ax1.set_xlabel('epoch')
-    ax1.set_ylabel('loss_hist')
-    ax2.plot(test_hist)
-    ax2.set_xlabel('epoch')
-    ax2.set_ylabel('test_hist')
-    plt.tight_layout()
-    plt.show()
+
+ax1_x = []
+for i in range(len(loss_hist)):
+    ax1_x.append(i+1)
+ax2_x = []
+for i in range(len(test_hist)):
+    ax2_x.append(i + 1)
+time_ = (end_time - start_time)/(3600*epochs)
+time_ = '{:.2f}'.format(time_)
+fig = plt.figure(f'{time_}h/epoch')
+ax1 = fig.add_subplot(1, 2, 1)
+ax2 = fig.add_subplot(1, 2, 2)
+loss_hist = list(map(sqrt_, loss_hist))
+test_hist = list(map(sqrt_, test_hist))
+ax1.plot(ax1_x, loss_hist)
+ax1.set_xlabel('epoch')
+ax1.set_ylabel('loss_hist')
+ax2.plot(ax2_x, test_hist)
+ax2.set_xlabel('epoch')
+ax2.set_ylabel('test_hist')
+plt.tight_layout()
+plt.show()
+
 
 
 
