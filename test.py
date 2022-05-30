@@ -1,49 +1,114 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import os
 import torch
 import torchvision
 from torch import nn, optim
 from torch.nn import functional as F
 from torch.utils.data import TensorDataset, DataLoader
+from data import LoadDataset
+import os 
 from tqdm import tqdm
+import datetime
 # from rectangle_builder import rectangle,test_img
-import sys
-sys.path.append(r"C:\Users\aki\Documents\GitHub\deep\pytorch_test\snu")
+import traceback
+
 from model import snu_layer
 from model import network
+from model import loss
 from tqdm import tqdm
-# from mp4_rec import record, rectangle_record
-from PIL import Image
-import scipy.io
 # from torchsummary import summary
+import argparse
+import time
 
-class TrainLoadDataset(torch.utils.data.Dataset):
-    def __init__(self, csv_file):
-       
-        self.df = pd.read_csv(csv_file)
-        #self.data_transform = data_transform
+start_time = time.time()
+parser = argparse.ArgumentParser()
+parser.add_argument('--batch', '-b', type=int, default=7)
+parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
+parser.add_argument('--time', '-t', type=int, default=100,
+                        help='Total simulation time steps.')
+parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
+parser.add_argument('--forget', '-f', action='store_true' ,default=False) 
+parser.add_argument('--dual', '-d', action='store_true' ,default=False)
+args = parser.parse_args()
 
-    def __len__(self):
-        return len(self.df)
 
-    def __getitem__(self, i):
-        file = self.df['id'][i]
-        label = np.array(self.df['label'][i])
-        image = scipy.io.loadmat(file)
-        #print("label : ",label)
-        #print("image : ",image['time_data'].shape)
+print("***************************")
+train_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "train" ,time = args.time)
+test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "test" ,time = args.time)
+data_id = 2
+# print(train_dataset[data_id][0]) #(784, 100) 
+train_iter = DataLoader(train_dataset, batch_size=args.batch, shuffle=True)
+test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
+# print(train_iter.shape)
+# ネットワーク設計
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# 畳み込みオートエンコーダー　リカレントSNN　
+# model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+model.load_state_dict(torch.load('models/2.pth'))
 
-        #label = torch.tensor(label, dtype=torch.float32)
-        image = image['time_data']
-        #image = image.reshape(4096,21) # flash 仕様
-        image = image.reshape(1024,11264) # scan LiDAR　仕様
-        #print("image : ",image.shape)
-        image = image.astype(np.float32)
-        label = label.astype(np.int64)
-        label = torch.tensor(label,dtype =torch.int64 )
-        #label = F.one_hot(label,num_classes=2)
-        return image, label
-     
+
+model = model.to(device)
+print("building model")
+print(model.state_dict().keys())
+epochs = args.epoch
+before_loss = None
+loss_hist = []
+test_hist = []
+test_loss = []
+over = {}
+th = 5
+for i in range(300 // th ):
+    over[i] = []
+    over[-i] = []
+
+try:    
+    with torch.no_grad():
+        for i,(inputs, labels) in tqdm(enumerate(test_iter, 0), total=len(test_dataset)):
+            # if i == 2:
+            #     break
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            output = model(inputs, labels)
+            los = loss.compute_loss(output, labels)
+            test_loss.append(los.item())
+            # if labels[:,0].item() // th == -6:
+                # print(labels[:,0].item())
+            over[int(labels[:,0].item() / th)].append(los.item())
+    
+
+except:
+    traceback.print_exc()
+    pass
+
+
+
+for key in over.keys():
+    over[key] = np.mean(over[key])
+print(over)
+
+
+
+
+
+###ログのグラフ
+
+def sqrt_(n):
+    return n ** 0.5
+def double(n):
+    return n * th
+
+over = over.items()
+over = sorted(over)
+x,y = zip(*over)
+x = list(map(double, x))
+y = list(map(sqrt_, y))
+plt.plot(x, y)
+plt.xlabel('angular velocity')
+plt.ylabel('loss **1')
+plt.show()
+    
+ 
+
+
+
