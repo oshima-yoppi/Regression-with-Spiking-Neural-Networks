@@ -35,8 +35,3 @@ v2eはかなり多くのargumentがありますが、[v2e](https://github.com/os
 特になし
 
 
-# Author
-
-
-* oshima-yoppi
-* kimura-lab
