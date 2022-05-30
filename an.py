@@ -1,13 +1,15 @@
-import torch
-# a = torch.tensor([[1,0.1],[2, 0.2]])
+import matplotlib.pyplot as plt
+a = {}
+a[-5] = 5
+a[1] = 1
+a[-12] = 12
+print(a.items())
+a = a.items()
+a = sorted(a)
+print(a)
+x, y = zip(*a) 
 
-# b = torch.tensor([[3,0.3],[4, 0.4]])
-# c = torch.stack((a,b), 1)
-# print(a-1)
-# print(b)
-# for i in range(2):
-#     print(c[:,i])
-# # print(c)
-a = torch.tensor([1,2])
-b = a.unsqueeze(0)
-print(b)
+plt.plot(x, y)
+plt.show()
+# a = sorted(a.keys())
+# print(a)
