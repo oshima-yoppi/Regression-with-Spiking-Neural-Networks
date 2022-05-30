@@ -45,7 +45,8 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
 # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-model.load_state_dict(torch.load('models/2.pth'))
+model_path = 'models/2.pth'
+model.load_state_dict(torch.load(model_path))
 
 
 model = model.to(device)
@@ -106,6 +107,7 @@ y = list(map(sqrt_, y))
 plt.plot(x, y)
 plt.xlabel('angular velocity')
 plt.ylabel('loss **1')
+plt.title('model:' + model_path)
 plt.show()
     
  
