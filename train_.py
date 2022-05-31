@@ -70,10 +70,10 @@ try:
         test_loss = []
         print("EPOCH",epoch)
         # モデル保存
-        if epoch == 0 :
-            torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
-            print("success model saving")
-            print(model)
+        # if epoch == 0 :
+        #     torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
+        #     print("success model saving")
+        #     print(model)
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         # print(f'train_iter len{len(train_iter)}')
