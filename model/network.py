@@ -43,7 +43,7 @@ class Conv4Regression(torch.nn.Module):
         # self.l4 = snu_layer.SNU(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
         # self.l3 = nn.Linear(n1, n2, bias = True)
         # self.l4 = nn.Linear(n2, n3, bias = True)
-        self.out1 = snu_layer.SNU_None(n1, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+        self.out1 = snu_layer.SNU_None(n1, n1, l_tau=l_tau, soft=soft, gpu=gpu)
         # self.l4 = snu_layer.SNU_None(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
 
     def _reset_state(self):
@@ -83,8 +83,9 @@ class Conv4Regression(torch.nn.Module):
             x_ = x_.view(len(x_), -1)
             # print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
             x_ = self.out1(x_)
-            # x_ = self.l4(x_)
-            # x_ *= 50
+            x_ = torch.mean(x_, dim=1)
+            x_ = x_.view(len(x_), -1)
+            # print(x_)
             record.append(x_)
             
         out_rec = torch.cat(record, dim = 1)
