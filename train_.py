@@ -64,7 +64,7 @@ loss_hist = []
 test_hist = []
 try:
 
-    for epoch in tqdm(range(epochs),):
+    for epoch in tqdm(range(epochs), desc='epoch',):
         running_loss = 0.0
         local_loss = []
         test_loss = []
@@ -77,22 +77,17 @@ try:
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         # print(f'train_iter len{len(train_iter)}')
-        for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0), total=len(train_iter)):
+        for i ,(inputs, labels) in enumerate(tqdm(train_iter, desc='train_iter'),0):
             optimizer.zero_grad()
             inputs = inputs[:,:args.time]
             inputs = inputs.to(device)
             labels = labels.to(device)
             torch.cuda.memory_summary(device=None, abbreviated=False)
             output= model(inputs, labels)
-
-            # print(f"output.shape:{output.shape}")###torch.Size([32, 100])
-            # kazu = torch.count_nonzero(inputs[0,1,:, :,:,] == 1.)
-            # print(f"sssssssssssssssssssss{kazu}")
-            print(output)
             los = loss.compute_loss(output, labels)
             
-            print(f'label:{labels[:,0]}')
-            # print(f'label:{labels[0,0]}, {labels[1,0]}')
+            # print(output)
+            # print(f'label:{labels[:,0]}')
             print(f'epoch:{epoch+1}  loss:{los}') # 
             print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
             torch.autograd.set_detect_anomaly(True)
@@ -108,7 +103,7 @@ try:
 
         
         with torch.no_grad():
-            for i,(inputs, labels) in enumerate(test_iter, 0):
+            for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test_iter')):
                 # print(i)
                 inputs = inputs.to(device)
                 labels = labels.to(device)
