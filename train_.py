@@ -56,15 +56,15 @@ model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=a
 model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
-# optimizer = optim.Adam(model.parameters(), lr=1e-3)
+# optimizer = optim.Adam(model.parameters(), lr=1e-4)
+optimizer = optim.Adam(model.parameters(), lr=1e-3)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
 test_hist = []
 try:
 
-    for epoch in tqdm(range(epochs)):
+    for epoch in tqdm(range(epochs),):
         running_loss = 0.0
         local_loss = []
         test_loss = []
@@ -76,7 +76,8 @@ try:
             print(model)
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
-        for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0)):
+        # print(f'train_iter len{len(train_iter)}')
+        for i ,(inputs, labels) in tqdm(enumerate(train_iter, 0), total=len(train_iter)):
             optimizer.zero_grad()
             inputs = inputs[:,:args.time]
             inputs = inputs.to(device)
@@ -160,7 +161,7 @@ for i in range(len(loss_hist)):
 ax2_x = []
 for i in range(len(test_hist)):
     ax2_x.append(i + 1)
-time_ = (end_time - start_time)/(3600*epochs)
+time_ = (end_time - start_time)/(3600*epoch)
 time_ = '{:.2f}'.format(time_)
 fig = plt.figure(f'{time_}h/epoch')
 ax1 = fig.add_subplot(1, 2, 1)
