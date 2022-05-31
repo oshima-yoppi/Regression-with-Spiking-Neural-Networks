@@ -57,7 +57,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
@@ -77,7 +77,7 @@ try:
         # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
             # for i,(inputs, labels, name) in enumerate(train_iter, 0):
         # print(f'train_iter len{len(train_iter)}')
-        for i ,(inputs, labels) in enumerate(tqdm(train_iter, desc='train_iter'),0):
+        for i ,(inputs, labels) in enumerate(tqdm(train_iter, desc='train')):
             optimizer.zero_grad()
             inputs = inputs[:,:args.time]
             inputs = inputs.to(device)
@@ -103,7 +103,7 @@ try:
 
         
         with torch.no_grad():
-            for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test_iter')):
+            for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test')):
                 # print(i)
                 inputs = inputs.to(device)
                 labels = labels.to(device)
