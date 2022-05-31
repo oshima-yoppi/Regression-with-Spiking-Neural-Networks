@@ -45,7 +45,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
 # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-model_path = 'models/3.pth'
+model_path = 'models/4.pth'
 model.load_state_dict(torch.load(model_path))
 
 
@@ -65,7 +65,7 @@ for i in range(300 // th ):
 
 try:    
     with torch.no_grad():
-        for i,(inputs, labels) in tqdm(enumerate(test_iter, 0), total=len(test_dataset)):
+        for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test_iter')):
             # if i == 2:
             #     break
             inputs = inputs.to(device)
