@@ -22,9 +22,9 @@ import time
 
 start_time = time.time()
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch', '-b', type=int, default=7)
+parser.add_argument('--batch', '-b', type=int, default=1)
 parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
-parser.add_argument('--time', '-t', type=int, default=100,
+parser.add_argument('--time', '-t', type=int, default=20,
                         help='Total simulation time steps.')
 parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
 parser.add_argument('--forget', '-f', action='store_true' ,default=False) 
@@ -45,7 +45,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
 # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-model_path = 'models/2.pth'
+model_path = 'models/3.pth'
 model.load_state_dict(torch.load(model_path))
 
 
