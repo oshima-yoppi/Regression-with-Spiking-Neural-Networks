@@ -29,6 +29,7 @@ parser.add_argument('--time', '-t', type=int, default=20,
 parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
 parser.add_argument('--forget', '-f', action='store_true' ,default=False) 
 parser.add_argument('--dual', '-d', action='store_true' ,default=False)
+parser.add_argument('--number', '-n', type=int)
 args = parser.parse_args()
 
 
@@ -45,7 +46,9 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
 # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
 model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-model_path = 'models/4.pth'
+# print(args.number)
+print(f'args.n:{args.number}')
+model_path = f'models/{args.number}.pth'
 model.load_state_dict(torch.load(model_path))
 
 
@@ -57,11 +60,11 @@ before_loss = None
 loss_hist = []
 test_hist = []
 test_loss = []
-over = {}
-th = 5
-for i in range(300 // th ):
-    over[i] = []
-    over[-i] = []
+th = 100
+analysis_loss = [[] for _ in range(int(300*2/th))]
+analysis_rate = [[] for _ in range(int(300*2/th))]
+
+
 
 try:    
     with torch.no_grad():
@@ -75,41 +78,42 @@ try:
             test_loss.append(los.item())
             # if labels[:,0].item() // th == -6:
                 # print(labels[:,0].item())
-            over[int(labels[:,0].item() / th)].append(los.item())
-    
+            analysis_loss[int((labels[:,0].item() + 300) / th)].append(np.sqrt(los.item()))
+            analysis_rate[int((labels[:,0].item() + 300) / th)].append(abs(np.sqrt(los.item())*100/labels[:,0].item()))
 
 except:
     traceback.print_exc()
     pass
 
 
+for i in range(len(analysis_loss)):
+    analysis_loss[i] = np.mean(analysis_loss[i])
+    analysis_rate[i] = np.mean(analysis_rate[i])
+# for key in analysis_loss.keys():
+#     analysis_loss[key] = np.mean(analysis_loss[key])
+print(analysis_loss)
 
-for key in over.keys():
-    over[key] = np.mean(over[key])
-print(over)
 
 
 
 
+x = []
+for i in range(int(300*2/th)):
+    x.append(-300 + th/2 + th *i)
 
-###ログのグラフ
 
-def sqrt_(n):
-    return n ** 0.5
-def double(n):
-    return n * th
 
-over = over.items()
-over = sorted(over)
-x,y = zip(*over)
-x = list(map(double, x))
-y = list(map(sqrt_, y))
-plt.plot(x, y)
-plt.xlabel('angular velocity')
-plt.ylabel('loss **1')
-plt.title('model:' + model_path)
+fig = plt.figure(f'{model_path}のloss分析')
+ax1 = fig.add_subplot(1, 2, 1)
+ax2 = fig.add_subplot(1, 2, 2)
+ax1.plot(x, analysis_loss)
+ax1.set_xlabel('Angular Velocity')
+ax1.set_ylabel('loss')
+ax2.plot(x, analysis_rate)
+ax2.set_xlabel('Angular Velocity')
+ax2.set_ylabel('loss rate[%]')
+plt.tight_layout()
 plt.show()
-    
  
 
 
