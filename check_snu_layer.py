@@ -29,7 +29,7 @@ print(device)
 tau_=(1-dt/tau)
 # tau_ = 1
 snu_l = snu_layer.SNU(in_channels=1, out_channels=1 ,l_tau=tau_,
-                      soft=False, initial_bias=-V_th,gpu=gpu, rec=True)
+                      soft=False, initial_bias=-V_th,gpu=gpu, rec=True, bias=True)
 # snu_l.Wx.W = torch.Tensor(np.array([[1.0]], dtype=np.float32))
 
 """ Generate Poisson Spike Trains """

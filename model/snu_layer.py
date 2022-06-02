@@ -16,8 +16,8 @@ from . import step_func
 #import step_func
 
 class SNU(nn.Module):
-    def __init__(self, in_channels, out_channels, l_tau=0.8, soft=False, rec=False, nobias=False, initial_bias=-0.5, gpu=True):
-        super(SNU,self).__init__()
+    def __init__(self, in_channels, out_channels, l_tau=0.8, soft=False, rec=False, nobias=False, initial_bias=-0.5, gpu=True, bias=True):
+        super().__init__()
 
         self.in_channels = in_channels
         self.out_channels= out_channels
@@ -25,6 +25,7 @@ class SNU(nn.Module):
         self.rec = rec
         self.soft = soft
         self.gpu = gpu
+        self.bias = bias
         self.s = None
         self.y = None
         self.initial_bias = initial_bias
@@ -37,21 +38,14 @@ class SNU(nn.Module):
             dtype = torch.float
             device=torch.device("cpu")
         
-        #self.w1 = torch.empty((n_in, n_out),  device=device, dtype=dtype, requires_grad=True)
-        #torch.nn.init.normal_(self.w1, mean=0.0)
         
-        #self.Wx = torch.einsum("abc,cd->abd", (x_data, w1))
-        #self.Wx = nn.Linear(4374, out_channels, bias=False).to(device)
         self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
-        # print(self.Wx)
-        # nn.init.uniform_(self.Wx.weight, -0.1, 0.1) #3.0
-        # torch.nn.init.xavier_uniform_(self.Wx.weight)
-        # torch.nn.init.constant_(self.Wx.weight, 0.1)
-        # print('77777777777777777')
-        # print(self.Wx)
+        if self.rec:
+            print("recだよ")
+            self.Wrec = nn.Linear(out_channels, in_channels, bias=self.bias).to(device)
     
 
-        if nobias:
+        if not self.bias:
             self.b = None
         else:
 
@@ -87,15 +81,12 @@ class SNU(nn.Module):
         if type(self.s) == numpy.ndarray:
             self.s = torch.from_numpy(self.s.astype(np.float32)).clone()
     
-        #print("x in snu.shape",x.shape) #x in snu.shape torch.Size([256, 784])        
-        #print("self.Wx(x).shape",self.Wx(x).shape)
-        #print("self.s.shape : ",self.s.shape)
-        # s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
-        s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
-        # print(f'wx.shape:{self.Wx.shape}')
-        # s = self.Wx(x) + self.l_tau * self.s * (1-self.y)
-        # print("s : ",s)
-
+        if self.rec:
+            s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y) + self.Wrec(self.y))
+            pass
+        else:
+            s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
+        
         if self.soft:
 
             axis = 1
@@ -105,14 +96,14 @@ class SNU(nn.Module):
             # y = F.elu(bias_)
 
         else:
-            axis = 0
-            #print("s.shape:", s.shape)
-            #print("self.b.shape:", self.b.shape)
-            #print("self.initial_bias.shape:",self.initial_bias.shape)
-            # print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
-            bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
+            # axis = 0
+            # #print("s.shape:", s.shape)
+            # #prit("self.b.shape:", self.b.shape)
+            # #print("self.initial_bias.shape:",self.initial_bias.shape)
+            # # print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
+            # bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
             # print("bias:",bias)
-            #print("s in snu:",s)
+            #print("s in snu:",s)n
             bias = s + self.b
             # print(bias)
 
@@ -124,7 +115,7 @@ class SNU(nn.Module):
         return y
 
 class SNU_None(nn.Module):
-    def __init__(self, in_channels, out_channels, l_tau=0.8, soft=False, rec=False, nobias=False, initial_bias=-0.5, gpu=True):
+    def __init__(self, in_channels, out_channels, l_tau=0.8, soft=False, rec=False, nobias=False, initial_bias=-0.5, gpu=True, bias=True):
         super().__init__()
 
         self.in_channels = in_channels
@@ -242,8 +233,8 @@ class Conv_SNU(nn.Module):
                      or Step func. (False)
         rec (bool): Adding recurrent connection or not.
     """
-    def __init__(self, in_channels, out_channels, kernel_size, stride=2, padding=0, l_tau=0.8, soft=False, rec=False, forget=False, dual=False,nobias=False, initial_bias=-0.5, gpu=True):
-        super(Conv_SNU,self).__init__()
+    def __init__(self, in_channels, out_channels, kernel_size, stride=2, padding=0, l_tau=0.8, soft=False, rec=False, forget=False, dual=False,nobias=False, initial_bias=-0.5, gpu=True, bias=True):
+        super().__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -382,111 +373,3 @@ class Conv_SNU(nn.Module):
         return y
 
 
-class tConv_SNU(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=0, l_tau=0.8, soft=False, rec=False, nobias=False, initial_bias=-0.5, gpu=True):
-        super(tConv_SNU,self).__init__()
-
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.l_tau = l_tau
-        self.rec = rec
-        self.soft = soft
-        self.gpu = gpu
-        self.s = None
-        self.y = None
-        self.initial_bias = initial_bias
-
-        if self.gpu:
-            #xp = cuda.cupy
-            dtype = torch.float
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        else:
-            dtype = torch.float
-            device=torch.device("cpu")
-        
-
-        self.Wx = nn.ConvTranspose2d(self.in_channels, self.out_channels, self.kernel_size, self.stride, bias=False).to(device) #入力チャネル数, 出力チャネル数, フィルタサイズ
-        torch.nn.init.xavier_uniform_(self.Wx.weight)
-        if self.rec==True:
-
-            self.Wy = nn.Conv2d(self.out_channels, self.out_channels, kernel_size=3, padding=1, stride=1, bias=False).to(device) #入力チャネル数, 出力チャネル数, フィルタサイズ
-            torch.nn.init.xavier_uniform_(self.Wy.weight)
-            """
-            # 膜電位忘却ゲート
-            self.Wf = nn.Conv2d(self.in_channels, self.out_channels, kernel_size=3, stride=1, padding=1, bias=False).to(device) #入力チャネル数, 出力チャネル数, フィルタサイズ
-            torch.nn.init.xavier_uniform_(self.Wf.weight)
-            self.Rf = nn.Conv2d(self.out_channels, self.out_channels, kernel_size=3, stride=1, padding=1, bias=False).to(device) #入力チャネル数, 出力チャネル数, フィルタサイズ
-            torch.nn.init.xavier_uniform_(self.Rf.weight)
-            """
-        if nobias:
-            self.b = None
-        else:
-
-            #print("initial_bias",initial_bias)
-            device = torch.device(device)
-            self.b = nn.Parameter(torch.Tensor([initial_bias]).to(device))
-            #print("self.b",self.b)
-
-    def reset_state(self, s=None, y=None):
-        self.s = s
-        self.y = y
-
-    def initialize_state(self, shape):
-        if self.gpu:
-            #xp = cuda.cupy
-            dtype = torch.float
-            device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        else:
-            dtype = torch.float
-            device=torch.device("cpu")
-            
-        self.s = torch.zeros((shape[0], self.out_channels, 2*shape[2], 2*shape[3]),device=device,dtype=dtype)
-        self.y = torch.zeros((shape[0], self.out_channels, 2*shape[2], 2*shape[3]),device=device,dtype=dtype)
-        #self.Wrs = nn.Parameter(torch.empty((shape[0], self.out_channels, 2*shape[2], 2*shape[3]),device=device,dtype=dtype))
-        #self.br = nn.Parameter(torch.empty((shape[0], self.out_channels, 2*shape[2], 2*shape[3]),device=device,dtype=dtype))
-    
-    def forward(self,x):
-        if self.s is None:
-            #print("self.s is none")
-            self.initialize_state(x.shape)
-        #print(self.l_tau)
-        #print("rec:",self.rec)
-        #"print('self.Wy(self.y)',self.Wy(self.y).shape)
-        #print('self.Wx(x)',self.Wx(x).shape)
-        if type(self.s) == numpy.ndarray:
-            self.s = torch.from_numpy(self.s.astype(np.float32)).clone()
-    
-        if self.rec==True:
-           # f = torch.sigmoid(self.Wf(x) + self.Rf(self.y))
-           # spike 再入力ゲート
-            i = torch.sigmoid(self.Wx(x) + self.Wy(self.y))
-            s = F.elu(abs(self.Wx(x)) + i*self.Wy(self.y) + self.l_tau* self.s * (1-self.y))
-        else:
-            s = F.elu(abs(self.Wx(x)) + self.l_tau * self.s * (1-self.y))
-        #s = F.elu(abs(self.Wx(x)) + r * self.s * (1-self.y))
-        
-
-        if self.soft:
-
-            axis = 1
-            bias_ = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)]
-            #print("bias_:",bias_)
-            y = torch.sigmoid(bias_)
-
-        else:
-            axis = 0
-
-            #print("s.shape:", s.shape)
-            #print("self.b.shape:", self.b.shape)
-            #print("self.initial_bias.shape:",self.initial_bias.shape)
-            #print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
-            bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
-            bias = s + self.b
-            y = step_func.spike_fn(bias)
-        
-        self.s = s
-        self.y = y
-
-        return y
