@@ -86,11 +86,9 @@ except:
     pass
 
 
-for i in range(len(analysis_loss)):
-    analysis_loss[i] = np.mean(analysis_loss[i])
-    analysis_rate[i] = np.mean(analysis_rate[i])
-# for key in analysis_loss.keys():
-#     analysis_loss[key] = np.mean(analysis_loss[key])
+# for i in range(len(analysis_loss)):
+#     analysis_loss[i] = np.mean(analysis_loss[i])
+#     analysis_rate[i] = np.mean(analysis_rate[i])
 print(analysis_loss)
 
 
@@ -106,10 +104,11 @@ for i in range(int(300*2/th)):
 fig = plt.figure(f'{model_path}のloss分析')
 ax1 = fig.add_subplot(1, 2, 1)
 ax2 = fig.add_subplot(1, 2, 2)
-ax1.plot(x, analysis_loss)
+# ax1.plot(x, analysis_loss)
+ax1.boxplot(analysis_loss, labels=x)
 ax1.set_xlabel('Angular Velocity')
 ax1.set_ylabel('loss')
-ax2.plot(x, analysis_rate)
+ax2.boxplot(analysis_rate, labels=x)
 ax2.set_xlabel('Angular Velocity')
 ax2.set_ylabel('loss rate[%]')
 plt.tight_layout()
