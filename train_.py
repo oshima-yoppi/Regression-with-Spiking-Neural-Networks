@@ -69,14 +69,9 @@ try:
         local_loss = []
         test_loss = []
         print("EPOCH",epoch)
-        # モデル保存
-        # if epoch == 0 :
-        #     torch.save(model.state_dict(), "models/models_state_dict_"+str(epoch)+"epochs.pth")
-        #     print("success model saving")
-        #     print(model)
-        # with tqdm(total=len(train_dataset),desc=f'Epoch{epoch+1}/{epochs}',unit='img')as pbar:
-            # for i,(inputs, labels, name) in enumerate(train_iter, 0):
+        
         # print(f'train_iter len{len(train_iter)}')
+        print(f'before_loss:{before_loss}') ## 一個前のepoch loss
         for i ,(inputs, labels) in enumerate(tqdm(train_iter, desc='train')):
             optimizer.zero_grad()
             inputs = inputs[:,:args.time]
@@ -88,8 +83,8 @@ try:
             
             # print(output)
             # print(f'label:{labels[:,0]}')
-            print(f'epoch:{epoch+1}  loss:{los}') # 
-            print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
+            # print(f'epoch:{epoch+1}  loss:{los}') # 
+            # print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
             torch.autograd.set_detect_anomaly(True)
             los.backward(retain_graph=True)
             running_loss += los.item()
