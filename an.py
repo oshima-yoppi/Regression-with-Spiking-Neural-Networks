@@ -1,5 +1,4 @@
-import time
-from tqdm import tqdm
-
-for i in tqdm(range(10), desc="aaa"):
-    time.sleep(0.1)
+a = {}
+a[1] = 5
+a[1] -= 1
+print(a)
