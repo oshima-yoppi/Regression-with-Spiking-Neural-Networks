@@ -42,18 +42,18 @@ class SNU(nn.Module):
         self.Wx = nn.Linear(in_channels, out_channels, bias=False).to(device)
         if self.rec:
             print("recだよ")
-            self.Wrec = nn.Linear(out_channels, in_channels, bias=self.bias).to(device)
+            self.Wrec = nn.Linear(out_channels, out_channels, bias=self.bias).to(device)
     
 
         if not self.bias:
             self.b = None
         else:
 
-            #print("initial_bias",initial_bias)
             device = torch.device(device)
             
             self.b = nn.Parameter(torch.Tensor([initial_bias]).to(device))
-            #print("self.b",self.b)
+            # print("self.b",self.b)
+            # print('afk;lasdl;kaskl;l;kj')
                             
     def reset_state(self, s=None, y=None):
         self.s = s
@@ -83,7 +83,7 @@ class SNU(nn.Module):
     
         if self.rec:
             s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y) + self.Wrec(self.y))
-            pass
+            
         else:
             s = F.elu(self.Wx(x) + self.l_tau * self.s * (1-self.y))
         
@@ -96,17 +96,9 @@ class SNU(nn.Module):
             # y = F.elu(bias_)
 
         else:
-            # axis = 0
-            # #print("s.shape:", s.shape)
-            # #prit("self.b.shape:", self.b.shape)
-            # #print("self.initial_bias.shape:",self.initial_bias.shape)
-            # # print("self.b.shape !!!!!!!!!!!!!!!! ", self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)].shape)
-            # bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
-            # print("bias:",bias)
-            #print("s in snu:",s)n
+            axis = 0
+            bias = s + self.b[(...,) + (None,) * (s.ndim - self.b.ndim - axis)] #error!! two types
             bias = s + self.b
-            # print(bias)
-
             y = step_func.spike_fn(bias)
         # print(self.s)
         self.s = s
