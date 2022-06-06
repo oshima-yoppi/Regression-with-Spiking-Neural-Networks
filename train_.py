@@ -1,3 +1,4 @@
+from statistics import mode
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -11,13 +12,10 @@ from tqdm import tqdm
 import datetime
 # from rectangle_builder import rectangle,test_img
 import traceback
-import sys
-
-sys.path.append(r"C:\Users\aki\Documents\GitHub\deep\pytorch_test\snu")
 from model import snu_layer
 from model import network
 from model import loss
-from tqdm import tqdm
+from analysis import analyze_model
 #from mp4_rec import record, rectangle_record
 import pandas as pd
 # import scipy.io
@@ -141,32 +139,71 @@ enddir = "models/models_state_dict_end.pth"
 torch.save(model.state_dict(), enddir)
 print("success model saving")
 
+try:
+    ana_x, analysis_loss, analysis_rate = analyze_model(model=model)
+    def sqrt_(n):
+        return n ** 0.5
+    ###ログのグラフ
 
-def sqrt_(n):
-    return n ** 0.5
-###ログのグラフ
+    ax1_x = []
+    for i in range(len(loss_hist)):
+        ax1_x.append(i+1)
+    ax2_x = []
+    for i in range(len(test_hist)):
+        ax2_x.append(i + 1)
+    time_ = (end_time - start_time)/(3600*epoch)
+    time_ = '{:.2f}'.format(time_)
+    fig = plt.figure(f'{time_}h/epoch')
+    ax1 = fig.add_subplot(2, 2, 1)
+    ax2 = fig.add_subplot(2, 2, 2)
+    ax3 = fig.add_subplot(2, 2, 3)
+    ax4 = fig.add_subplot(2, 2, 4)
+    loss_hist = list(map(sqrt_, loss_hist))
+    test_hist = list(map(sqrt_, test_hist))
+    ax1.plot(ax1_x, loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(ax2_x, test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
 
-ax1_x = []
-for i in range(len(loss_hist)):
-    ax1_x.append(i+1)
-ax2_x = []
-for i in range(len(test_hist)):
-    ax2_x.append(i + 1)
-time_ = (end_time - start_time)/(3600*epoch)
-time_ = '{:.2f}'.format(time_)
-fig = plt.figure(f'{time_}h/epoch')
-ax1 = fig.add_subplot(1, 2, 1)
-ax2 = fig.add_subplot(1, 2, 2)
-loss_hist = list(map(sqrt_, loss_hist))
-test_hist = list(map(sqrt_, test_hist))
-ax1.plot(ax1_x, loss_hist)
-ax1.set_xlabel('epoch')
-ax1.set_ylabel('loss_hist')
-ax2.plot(ax2_x, test_hist)
-ax2.set_xlabel('epoch')
-ax2.set_ylabel('test_hist')
-plt.tight_layout()
-plt.show()
+    
+    ax3.boxplot(analysis_loss, labels=ana_x)
+    ax3.set_xlabel('Angular Velocity')
+    ax3.set_ylabel('loss')
+    ax4.boxplot(analysis_rate, labels=ana_x)
+    ax4.set_xlabel('Angular Velocity')
+    ax4.set_ylabel('loss rate[%]')
+    plt.tight_layout()
+    plt.show()
+except:
+    print('!!!!!!!!!!!fuck !!!!!!!!!!!!!!!!')
+    traceback.print_exc()
+    def sqrt_(n):
+        return n ** 0.5
+    ###ログのグラフ
+
+    ax1_x = []
+    for i in range(len(loss_hist)):
+        ax1_x.append(i+1)
+    ax2_x = []
+    for i in range(len(test_hist)):
+        ax2_x.append(i + 1)
+    time_ = (end_time - start_time)/(3600*epoch)
+    time_ = '{:.2f}'.format(time_)
+    fig = plt.figure(f'{time_}h/epoch')
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    loss_hist = list(map(sqrt_, loss_hist))
+    test_hist = list(map(sqrt_, test_hist))
+    ax1.plot(ax1_x, loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(ax2_x, test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
+    plt.tight_layout()
+    plt.show()
 
 
 
