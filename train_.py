@@ -28,12 +28,13 @@ import time
 start_time = time.time()
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch', '-b', type=int, default=8)
-parser.add_argument('--epoch', '-e', type=int, default=10)##英さんはepoc100だった
+parser.add_argument('--epoch', '-e', type=int, default=15)
 parser.add_argument('--time', '-t', type=int, default=20,
                         help='Total simulation time steps.')
 parser.add_argument('--rec', '-r', action='store_true' ,default=False)  # -r付けるとTrue                  
 parser.add_argument('--forget', '-f', action='store_true' ,default=False) 
 parser.add_argument('--dual', '-d', action='store_true' ,default=False)
+parser.add_argument('--tau',  type=float ,default=0.8)
 args = parser.parse_args()
 
 
@@ -49,8 +50,8 @@ test_iter = DataLoader(test_dataset, batch_size=args.batch, shuffle=True)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # 畳み込みオートエンコーダー　リカレントSNN　
 # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-# model = network.Conv4Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-model = network.RSNU(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch, bias=True)
+model = network.Conv4Regression(num_time=args.time,l_tau=args.tau, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+# model = network.RSNU(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch, bias=True)
 
 
 
@@ -136,9 +137,8 @@ with open(path_w, mode='w') as f:
 print(output)
 
 
-
-torch.save(model.state_dict(), "models/models_state_dict_end.pth")
- # モデル読み込み
+enddir = "models/models_state_dict_end.pth"
+torch.save(model.state_dict(), enddir)
 print("success model saving")
 
 
