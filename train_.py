@@ -140,7 +140,7 @@ torch.save(model.state_dict(), enddir)
 print("success model saving")
 
 try:
-    ana_x, analysis_loss, analysis_rate = analyze_model(model=model)
+    ana_x, analysis_loss, analysis_rate = analyze_model(model=model, device=device, test_iter=test_iter)
     def sqrt_(n):
         return n ** 0.5
     ###ログのグラフ

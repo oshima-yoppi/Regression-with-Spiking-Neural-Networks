@@ -22,7 +22,7 @@ import time
 
 
 
-def analyze_model(model):
+def analyze_model(model, device, test_iter ):
     """"
     analyze trained model 
     """
@@ -71,7 +71,7 @@ def analyze_model(model):
     for i in range(int(300*2/th)):
         x.append(-300 + th/2 + th *i)
 
-    global model_path
+    
     try:
         fig = plt.figure(f'{model_path}のloss分析')
     except:
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     print(f'args.n:{args.number}')
     model_path = f'models/{args.number}.pth'
     model.load_state_dict(torch.load(model_path))
-    analyze_model(model)
+    analyze_model(model, device=device, test_iter=test_iter)
 
 
 
