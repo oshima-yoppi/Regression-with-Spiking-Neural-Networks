@@ -57,7 +57,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-optimizer = optim.Adam(model.parameters(), lr=1e-3)
+optimizer = optim.Adam(model.parameters(), lr=0.8e-3)
 epochs = args.epoch
 before_loss = None
 loss_hist = []
@@ -123,6 +123,8 @@ except:
     traceback.print_exc()
     pass
 end_time = time.time()
+
+
 # ログファイル二セーブ
 path_w = 'loss_hist.txt'
 with open(path_w, mode='w') as f:
@@ -131,14 +133,17 @@ with open(path_w, mode='w') as f:
     for i , x in enumerate(loss_hist):
         f.write(f"{i}: {x}\n")
 
+
 ##　最後の出力結果の確認用
 print(output)
 
-
+## save model
 enddir = "models/models_state_dict_end.pth"
 torch.save(model.state_dict(), enddir)
 print("success model saving")
 
+
+## analysis
 try:
     ana_x, analysis_loss, analysis_rate = analyze_model(model=model, device=device, test_iter=test_iter)
     def sqrt_(n):
