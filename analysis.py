@@ -39,7 +39,8 @@ def analyze_model(model, device, test_iter ):
     analysis_rate = [[] for _ in range(int(300*2/th))]
 
 
-
+    test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output/', which = "test" ,time = 20)
+    test_iter = DataLoader(test_dataset, batch_size=1, shuffle=True)
     try:    
         with torch.no_grad():
             for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test_iter')):
@@ -72,21 +73,21 @@ def analyze_model(model, device, test_iter ):
         x.append(-300 + th/2 + th *i)
 
     
-    try:
-        fig = plt.figure(f'{model_path}のloss分析')
-    except:
-        fig = plt.figure()
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax2 = fig.add_subplot(1, 2, 2)
-    # ax1.plot(x, analysis_loss)
-    ax1.boxplot(analysis_loss, labels=x)
-    ax1.set_xlabel('Angular Velocity')
-    ax1.set_ylabel('loss')
-    ax2.boxplot(analysis_rate, labels=x)
-    ax2.set_xlabel('Angular Velocity')
-    ax2.set_ylabel('loss rate[%]')
-    plt.tight_layout()
-    plt.show()
+    # try:
+    #     fig = plt.figure(f'{model_path}のloss分析')
+    # except:
+    #     fig = plt.figure()
+    # ax1 = fig.add_subplot(1, 2, 1)
+    # ax2 = fig.add_subplot(1, 2, 2)
+    # # ax1.plot(x, analysis_loss)
+    # ax1.boxplot(analysis_loss, labels=x)
+    # ax1.set_xlabel('Angular Velocity')
+    # ax1.set_ylabel('loss')
+    # ax2.boxplot(analysis_rate, labels=x)
+    # ax2.set_xlabel('Angular Velocity')
+    # ax2.set_ylabel('loss rate[%]')
+    # plt.tight_layout()
+    # plt.show()
     return x, analysis_loss, analysis_rate
     
 
@@ -128,6 +129,21 @@ if __name__ == "__main__":
     model_path = f'models/{args.number}.pth'
     model.load_state_dict(torch.load(model_path))
     analyze_model(model, device=device, test_iter=test_iter)
-
+    x, analysis_loss, analysis_rate = analyze_model(model=model, device=device, test_iter=test_iter)
+    try:
+        fig = plt.figure(f'{model_path}のloss分析')
+    except:
+        fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    # ax1.plot(x, analysis_loss)
+    ax1.boxplot(analysis_loss, labels=x)
+    ax1.set_xlabel('Angular Velocity')
+    ax1.set_ylabel('loss')
+    ax2.boxplot(analysis_rate, labels=x)
+    ax2.set_xlabel('Angular Velocity')
+    ax2.set_ylabel('loss rate[%]')
+    plt.tight_layout()
+    plt.show()
 
 
