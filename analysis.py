@@ -128,20 +128,20 @@ def analyze(model, device, test_iter, loss_hist=[], test_hist=[],
     ax2.set_ylabel('test_hist')
 
     
-    ax3.boxplot(analysis_loss, labels=ana_x)
+    ax3.boxplot(analysis_loss, labels=ana_x, showmeans=True)
     ax3.set_xlabel('Angular Velocity')
     ax3.set_ylabel('Loss')
     ax3.set_ylim(0, 40)
-    ax4.boxplot(analysis_rate, labels=ana_x)
+    ax4.boxplot(analysis_rate, labels=ana_x, showmeans=True)
     ax4.set_xlabel('Angular Velocity')
     ax4.set_ylabel('Loss Rate[%]')
     ax4.set_ylim(0, 200)
 
 
-    ax5.boxplot(analysis_loss, labels=ana_x)
+    ax5.boxplot(analysis_loss, labels=ana_x, showmeans=True)
     ax5.set_xlabel('Angular Velocity (unedited)')
     ax5.set_ylabel('Loss')
-    ax6.boxplot(analysis_rate, labels=ana_x)
+    ax6.boxplot(analysis_rate, labels=ana_x, showmeans=True)
     ax6.set_xlabel('Angular Velocity (unedited)')
     ax6.set_ylabel('Loss Rate[%]')
 
