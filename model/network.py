@@ -233,8 +233,8 @@ class SNU_Regression(torch.nn.Module):
             x_ = F.max_pool2d(x_, 2) 
             # x_ = self.l3(x_)
             # x_ = self.l4(x_)
-            x_ = x_.view(self.batch_size, -1)
-            print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
+            x_ = x_.view(len(x_), -1)
+            # print(f'x_.shape:{x_.shape}')#trch.Size([BatchSize, 16*64*64?])
             x_ = self.out1(x_)
             # x_ = self.l4(x_)
             # x_ *= 50
