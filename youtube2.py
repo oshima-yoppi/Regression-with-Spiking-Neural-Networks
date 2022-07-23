@@ -87,6 +87,8 @@ if __name__ == "__main__":
     for i in range(20):
         events[i,0,:,:] =  p[i,:,:]*300
         events[i,1,:,:] =  n[i,:,:]*300
+        #Red:positive
+        #Green:negative
         p_ = torchvision.transforms.functional.to_pil_image(events[i,:,:, :])
         
         # p_true = p[i,:,:]==1
@@ -94,10 +96,10 @@ if __name__ == "__main__":
         # print(f'count:{p_true.sum() + n_true.sum()}')
 
         images.append(p_)
-    images[0].save('youtube/douga_.gif', duration = 500, save_all=True, append_images=images[1:])
+    images[0].save('youtube/douga.gif', duration = 500, save_all=True, append_images=images[1:])
     
 
-    gif = cv2.VideoCapture('youtube/douga_.gif')
+    gif = cv2.VideoCapture('youtube/douga.gif')
     fps = gif.get(cv2.CAP_PROP_FPS)  # fpsは１秒あたりのコマ数
     
     images = []
