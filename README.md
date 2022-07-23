@@ -29,8 +29,8 @@ v2eはかなり多くのargumentがありますが、[v2e](https://github.com/os
 入力データと正解データはtorch.tensor型でoutputフォルダ内に`.h5`ファイルに保存されます。  
 v2eにより次のように動画をイベントデータに変換できます。  
 ![11_-82 15004684584068_0_0_](https://user-images.githubusercontent.com/82073759/171681741-ba964a32-5cfd-43fe-bb4c-d69e6c965247.gif)
-![dvs-video (1)](https://user-images.githubusercontent.com/82073759/171682207-dc1ed076-8993-4d68-8a97-b6469c0b08bd.gif)
-
+![dvs-video (1)](https://user-images.githubusercontent.com/82073759/171682207-dc1ed076-8993-4d68-8a97-b6469c0b08bd.gif)  
+![RGB](https://github.com/oshima-yoppi/SNU_torch/blob/bf0eeb282c6cc7c25fda309d9154aa09b9ee3c4b/youtube/douga_.gif)
 
 ## 学習
 `train.py`を実行することで、イベントカメラデータを読み込んで、学習を行う。
