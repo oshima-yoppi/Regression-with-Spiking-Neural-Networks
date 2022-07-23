@@ -76,20 +76,26 @@ if __name__ == "__main__":
     num = int(input())
     # print(a)
     p,n  = a[num]
+    # e = torch.zeros_like(p)
     # p_ = torchvision.transforms.functional.to_pil_image(p[11,:,:]*255)
     # p_.show()
-    p = p + n
     images = []
+    time_ = 20
+    x, y = 128, 128
+    channel = 3
+    events = torch.zeros(time_, channel, x, y)
     for i in range(20):
-        # print(i)
-        p_ = torchvision.transforms.functional.to_pil_image(p[i,:,:])
-        # print(p_.size)
-        # print(p_.mode)
+        events[i,0,:,:] =  p[i,:,:]*300
+        events[i,1,:,:] =  n[i,:,:]*300
+        p_ = torchvision.transforms.functional.to_pil_image(events[i,:,:, :])
         
-        images.append(p_)
-    print(images[0])
-    images[0].save('youtube/douga_.gif', duration = 500, save_all=True, append_images=images[1:])
+        # p_true = p[i,:,:]==1
+        # n_true = n[i,:,:]==1
+        # print(f'count:{p_true.sum() + n_true.sum()}')
 
+        images.append(p_)
+    images[0].save('youtube/douga_.gif', duration = 500, save_all=True, append_images=images[1:])
+    
 
     gif = cv2.VideoCapture('youtube/douga_.gif')
     fps = gif.get(cv2.CAP_PROP_FPS)  # fpsは１秒あたりのコマ数
