@@ -20,12 +20,13 @@ def compute_loss(input: torch.Tensor, label:torch.Tensor):
     # print(input.shape)#torch.Size([batch size, 100])
     # print(len(input[-1])) # 100
     ### ３３％超えてからロスの平均計算するようにした。
-    input = input[:, len(input[-1]) // 2:]
+    input = input[:, int(len(input[-1]) *0.8 ):]
     # input = input[:, 8:]
     input = torch.mean(input, dim = 1)
     # print(f'平均だよ {input}')
-    label = label[:,0]
-    # print(f'labelだよ{label}')
+    label = torch.sqrt(label[:,0]**2 + label[:,1]**2 + label[:,2]**2)
+    # label = label[:,0]
+    print(f'labelだよ{label}')
     # print('input.shape', input.shape)
     # print('label.shape', label.shape)
     # print(input-label)
