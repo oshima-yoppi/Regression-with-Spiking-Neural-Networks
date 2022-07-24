@@ -96,7 +96,7 @@ if __name__ == "__main__":
         # print(f'count:{p_true.sum() + n_true.sum()}')
 
         images.append(p_)
-    images[0].save('youtube/douga.gif', duration = 500, save_all=True, append_images=images[1:])
+    images[0].save('youtube/douga.gif', duration = 500, save_all=True, append_images=images[1:], loop = 50)
     
 
     gif = cv2.VideoCapture('youtube/douga.gif')
