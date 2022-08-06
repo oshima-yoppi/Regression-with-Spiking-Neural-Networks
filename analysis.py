@@ -56,7 +56,7 @@ def analyze(model, device, test_iter, loss_hist=[], test_hist=[],
                 #     break
                 inputs = inputs.to(device)
                 labels = labels.to(device)
-                output = model(inputs, labels)
+                output = model(inputs)
                 los = loss.compute_loss(output, labels)
                 test_loss.append(los.item())
 
@@ -66,16 +66,14 @@ def analyze(model, device, test_iter, loss_hist=[], test_hist=[],
 
                 loss_.append(los.item())
                 rate_.append(abs(np.sqrt(los.item())*100/labels[:,0].item()))
-                distribution_loss[int(np.sqrt(los.item()))] += 1
-                distribution_rate[int(abs(np.sqrt(los.item())*100/labels[:,0].item()))] += 1
-                # try:
-                #     distribution_loss[int(np.sqrt(los.item()))] += 1
-                # except:
-                #     distribution_loss[-1] += 1
-                # try:
-                #     distribution_rate[int(abs(np.sqrt(los.item())*100/labels[:,0].item()))] += 1
-                # except:
-                #     distribution_loss[-1] += 1
+                try:
+                    distribution_loss[int(np.sqrt(los.item()))] += 1
+                except:
+                    distribution_loss[-1] += 1
+                try:
+                    distribution_rate[int(abs(np.sqrt(los.item())*100/labels[:,0].item()))] += 1
+                except:
+                    distribution_loss[-1] += 1
 
     except:
         traceback.print_exc()
