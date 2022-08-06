@@ -12,6 +12,76 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# 改(05/08~)よｐっぴver　
+class VectorRegression(torch.nn.Module):
+    def __init__(self, num_time=20, l_tau=0.8, soft=False, rec=False, forget=False, dual=False, power=False, gpu=True,
+                 batch_size=128, reg_n = 65536 ):
+        super().__init__()
+
+        
+        self.num_time = num_time
+        self.batch_size = batch_size
+        self.rec = rec
+        self.forget = forget
+        self.dual = dual
+        self.power = power
+        n1 = 1024
+        n2 = 512
+        n3 = 3
+        # Encoder layers
+        self.l1 = snu_layer.Conv_SNU(in_channels=2, out_channels=4, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        self.l2 = snu_layer.Conv_SNU(in_channels=4, out_channels=16, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        # self.l3 = snu_layer.Conv_SNU(in_channels=16, out_channels=32, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        # self.l4 = snu_layer.Conv_SNU(in_channels=32, out_channels=64, kernel_size=3, padding=1, l_tau=l_tau, soft=soft, rec=self.rec, forget=self.forget, dual=self.dual, gpu=gpu)
+        # self.l3 = snu_layer.SNU(n1, n2, l_tau=l_tau, soft=soft, gpu=gpu)
+        # self.l4 = snu_layer.SNU(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+        # self.l3 = nn.Linear(n1, n2, bias = True)
+        # self.l4 = nn.Linear(n2, n3, bias = True)
+        self.out1 = snu_layer.SNU_None(n1, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+        # self.l4 = snu_layer.SNU_None(n2, n3, l_tau=l_tau, soft=soft, gpu=gpu)
+
+    def _reset_state(self):
+        self.l1.reset_state()
+        self.l2.reset_state()
+        self.out1.reset_state()
+
+   
+        
+    def forward(self, x):
+        """
+        x: inputs
+        """
+        loss = None
+        correct = 0
+        sum_out = None
+        dtype = torch.float
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        record = []
+        #print('out shape',out.shape)
+        self._reset_state()
+    
+
+        for t in range(self.num_time):
+            x_t = x[:, :, t, :, :]  
+            x_t = x_t.reshape((len(x_t), 2, 128, 128))#torch.Size([6, 2, 128, 128])
+            x_ = self.l1(x_t) 
+            x_ = F.max_pool2d(x_, 2) 
+            x_ = self.l2(x_) 
+            x_ = F.max_pool2d(x_, 2) 
+            x_ = x_.view(len(x_), -1)
+            x_ = self.out1(x_)
+            # print(x_.shape) #torch.Size([8, 3])
+            # x_ *= 50
+            x_ = x_.unsqueeze(dim=2)
+            record.append(x_)
+            
+        out_rec = torch.cat(record, dim = 2)
+        # print('----------------------')
+        # print(out_rec.shape)#torch.Size([Batch, 3, 20]) (batchsize, xyz, time)
+        # print(out_rec)
+        
+        return out_rec
+
 
 ## conv 4層
 class RSNU(torch.nn.Module):
