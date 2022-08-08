@@ -9,7 +9,7 @@ class SurrGradSpike(torch.autograd.Function):
     """Step function"""
     
     scale = 100.0 # controls steepness of surrogate gradient
-    scale = 1
+    scale = 50
     @staticmethod
     def forward(ctx, input):
         """
