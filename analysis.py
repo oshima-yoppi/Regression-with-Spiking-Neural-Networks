@@ -159,7 +159,196 @@ def analyze(model, device, test_iter, loss_hist=[], test_hist=[],
     plt.show()
     
     return x, analysis_loss, analysis_rate
+
+class AnalyzeDataset:
+    def __init__(self, th=4, max_angle=20,):
+        self.th = th
+        self.loss = [[] for _ in range(int(20*2/self.th))]
+        self.loss_rate = [[] for _ in range(int(20*2/self.th))]
     
+    def add(self, loss, label):
+        self.loss[int((label + 20) / self.th)].append(loss)
+        self.loss_rate[int((label + 20) / self.th)].append(abs(loss/label)*100)
+        return
+
+def analyze_3vector(model, device, test_iter, loss_hist=[], test_hist=[],
+            start_time=0, end_time=10, epoch=0, lr=None, tau=None ):
+    """"
+    analyze trained model 
+    """
+    model = model.to(device)
+    test_loss = []
+    
+    # エラーの解析
+    # 何度ずつ区切るか
+    th = 4
+    analysis_loss = [[] for _ in range(int(20*2/th))]
+    analysis_loss_x = [[] for _ in range(int(20*2/th))]
+    analysis_loss_y = [[] for _ in range(int(20*2/th))]
+    analysis_loss_z = [[] for _ in range(int(20*2/th))]
+    analysis_loss_w = [[] for _ in range(int(20*2/th))]
+
+    analysis_rate = [[] for _ in range(int(20*2/th))]
+    analysis_rate_x = [[] for _ in range(int(20*2/th))]
+    analysis_rate_y = [[] for _ in range(int(20*2/th))]
+    analysis_rate_z = [[] for _ in range(int(20*2/th))]
+    analysis_rate_w = [[] for _ in range(int(20*2/th))]
+    # 統計的な解析用
+    loss_ = []
+    rate_ = []
+    distribution_loss = [0]*40
+    distribution_rate = [0]*200
+    test_dataset = LoadDataset(dir = 'C:/Users/oosim/Desktop/snn/v2e/output_vector/', which = "test" ,time = 20)
+    test_iter = DataLoader(test_dataset, batch_size=1, shuffle=True)
+
+    analysis_x = AnalyzeDataset(th=4)
+    analysis_y = AnalyzeDataset(th=4)
+    analysis_z = AnalyzeDataset(th=4)
+    analysis_w = AnalyzeDataset(th=4)
+    try:    
+        with torch.no_grad():
+            for i,(inputs, labels) in enumerate(tqdm(test_iter, desc='test_iter')):
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+                output = model(inputs)
+                los=None
+                loss_x, loss_y, loss_z, loss_omega, same_loss = loss.analysis_loss(output, labels)
+                label_x = labels[:,0].item()
+                label_y = labels[:,1].item()
+                label_z = labels[:,2].item()
+                loss_x = loss_x.item()
+                loss_y = loss_y.item()
+                loss_z = loss_z.item()
+                loss_w = loss_omega.item()
+                label_w = (label_x**2 + label_y**2 + label_z**2)** 0.5
+                test_loss.append(same_loss.item())
+
+
+                # analysis_loss[int((labels[:,0].item() + 20) / th)].append(np.sqrt(los.item()))
+                analysis_x.add(loss=loss_x, label=label_x)
+                analysis_y.add(loss=loss_y, label=label_y)
+                analysis_z.add(loss=loss_z, label=label_z)
+                analysis_w.add(loss=loss_w, label=label_w)
+                # loss_.append(los.item())
+                # rate_.append(abs(np.sqrt(los.item())*100/labels[:,0].item()))
+                # try:
+                #     distribution_loss[int(np.sqrt(los.item()))] += 1
+                # except:
+                #     distribution_loss[-1] += 1
+                # try:
+                #     distribution_rate[int(abs(np.sqrt(los.item())*100/labels[:,0].item()))] += 1
+                # except:
+                #     distribution_loss[-1] += 1
+
+    except:
+        traceback.print_exc()
+        pass
+
+
+  
+    print(analysis_loss)
+
+
+
+
+
+    x = []
+    for i in range(int(20*2/th)):
+        x.append(-20 + th/2 + th *i)
+    
+    ana_x = x
+    def sqrt_(n):
+        return n ** 0.5
+    ###ログのグラフ
+
+    ax1_x = []
+    for i in range(len(loss_hist)):
+        ax1_x.append(i+1)
+    ax2_x = []
+    for i in range(len(test_hist)):
+        ax2_x.append(i + 1)
+    epoch += 0.0001
+    time_ = (end_time - start_time)/(3600*epoch)
+    time_ = '{:.2f}'.format(time_)
+    fig = plt.figure(f'学習時間:{time_}h/epoch, τ:{tau}, 学習率:{lr}', figsize=(18, 9))
+    ax1 = fig.add_subplot(3, 4, 1)
+    ax2 = fig.add_subplot(3, 4, 2)
+    ax3 = fig.add_subplot(3, 4, 3)
+    ax4 = fig.add_subplot(3, 4, 4)
+    ax5 = fig.add_subplot(3, 4, 5)
+    ax6 = fig.add_subplot(3, 4, 6)
+    ax7 = fig.add_subplot(3, 4, 7)
+    ax8 = fig.add_subplot(3, 4, 8)
+    ax9 = fig.add_subplot(3, 4, 9)
+    ax10 = fig.add_subplot(3, 4, 10)
+    ax11 = fig.add_subplot(3, 4, 11)
+    ax12 = fig.add_subplot(3, 4, 12)
+
+
+    # loss_hist = list(map(sqrt_, loss_hist))
+    # test_hist = list(map(sqrt_, test_hist))
+
+
+    ax1.plot(ax1_x, loss_hist)
+    ax1.set_xlabel('epoch')
+    ax1.set_ylabel('loss_hist')
+    ax2.plot(ax2_x, test_hist)
+    ax2.set_xlabel('epoch')
+    ax2.set_ylabel('test_hist')
+
+    
+    ax5.boxplot(analysis_x.loss, labels=ana_x, showmeans=True)
+    ax5.set_xlabel('Loss_X')
+    ax5.set_ylabel('Loss')
+    
+    ax6.boxplot(analysis_y.loss, labels=ana_x, showmeans=True)
+    ax6.set_xlabel('Loss_Y')
+    ax6.set_ylabel('Loss')
+    
+    ax7.boxplot(analysis_z.loss, labels=ana_x, showmeans=True)
+    ax7.set_xlabel('Loss_Z')
+    ax7.set_ylabel('Loss')
+
+    
+    ax8.boxplot(analysis_z.loss, labels=ana_x, showmeans=True)
+    ax8.set_xlabel('Loss_W')
+    ax8.set_ylabel('Loss')
+
+    
+    ax9.boxplot(analysis_x.loss_rate, labels=ana_x, showmeans=True)
+    ax9.set_xlabel('Rate_X')
+    ax9.set_ylabel('Loss Rate[%]')
+
+    ax10.boxplot(analysis_y.loss_rate, labels=ana_x, showmeans=True)
+    ax10.set_xlabel('Rate_Y')
+    ax10.set_ylabel('Loss Rate[%]')
+
+    ax11.boxplot(analysis_z.loss_rate, labels=ana_x, showmeans=True)
+    ax11.set_xlabel('Rate_Z')
+    ax11.set_ylabel('Loss Rate[%]')
+
+    ax12.boxplot(analysis_w.loss_rate, labels=ana_x, showmeans=True)
+    ax12.set_xlabel('Rate_W')
+    ax12.set_ylabel('Loss Rate[%]')
+
+
+    # ax4.set_ylim(0, 200)
+    # std_loss = np.std(loss_)
+    # std_rate = np.std(rate_)
+    # mean_loss = np.mean(loss_)
+    # mean_rate = np.mean(rate_)
+    # ax7.plot(distribution_loss)
+    # ax7.set_xlabel(f'Loss | mean:{round(mean_loss, 1)}, std:{round(std_loss,1)}')
+    # ax7.set_ylabel('Count')
+    # ax8.plot(distribution_rate)
+    # ax8.set_xlabel(f'Loss Rate[%] | mean:{round(mean_rate,1)}, std:{round(std_rate, 1)}')
+    # ax8.set_ylabel('Count')
+
+
+    plt.tight_layout()
+    plt.show()
+    
+    return x, analysis_loss, analysis_rate
 
 
 
@@ -194,11 +383,11 @@ if __name__ == "__main__":
     # 畳み込みオートエンコーダー　リカレントSNN　
     # model = network.SNU_Regression(num_time=args.time,l_tau=0.8, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
     # model = network.Conv4Regression(num_time=args.time,l_tau=args.tau, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
-    model = network.SNU_Regression(num_time=args.time,l_tau=args.tau, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
+    model = network.VectorRegression(num_time=args.time,l_tau=args.tau, soft =False, rec=args.rec, forget=args.forget, dual=args.dual, gpu=True, batch_size=args.batch)
     # print(args.number)
     print(f'args.n:{args.number}')
     model_path = f'models/{args.number}.pth'
     model.load_state_dict(torch.load(model_path))
-    analyze(model, device=device, test_iter=test_iter, tau=args.tau)
+    analyze_3vector(model, device=device, test_iter=test_iter, tau=args.tau)
     
 
