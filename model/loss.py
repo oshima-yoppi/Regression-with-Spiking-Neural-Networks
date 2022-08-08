@@ -57,13 +57,17 @@ def analysis_loss(input, label):
     loss_x = torch.abs(torch.sub(input[:,0], label[:,0]))
     loss_y = torch.abs(torch.sub(input[:,1], label[:,1]))
     loss_z = torch.abs(torch.sub(input[:,2], label[:,2]))
-
+    # print(loss_x.shape)
+    # print(loss_x)
 
     pred_omemga = torch.sqrt(torch.pow(input[:,0], 2) + torch.pow(input[:,1], 2) + torch.pow(input[:,2], 2))
     label_omega = torch.sqrt(torch.pow(label[:,0], 2) + torch.pow(label[:,1], 2) + torch.pow(label[:,2], 2))
-    loss_omega = torch.abs(pred_omemga, label_omega)
+    loss_omega = torch.abs(torch.sub(pred_omemga, label_omega))
 
-    return loss_x, loss_y, loss_z, loss_omega
+    # same train_loss
+    same_loss = torch.mean(torch.pow(torch.sub(input[:,0], label[:,0]), 2) + torch.pow(torch.sub(input[:,1], label[:,1]), 2) + torch.pow(torch.sub(input[:,2], label[:,2]), 2))      
+    
+    return loss_x, loss_y, loss_z, loss_omega, same_loss
 
 if __name__ == "__main__":
     a = torch.zeros(3,5
