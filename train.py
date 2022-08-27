@@ -57,7 +57,7 @@ model = model.to(device)
 print("building model")
 print(model.state_dict().keys())
 # lr = 1e-4
-lr = 1e-4
+lr = 4e-4
 optimizer = optim.Adam(model.parameters(), lr=lr)
 epochs = args.epoch
 before_loss = None
@@ -82,8 +82,8 @@ try:
             output= model(inputs, labels)
             los = loss.compute_loss(output, labels)
             
-            print(output)
-            print(f'label:{labels[:,0]}')
+            # print(output)
+            # print(f'label:{labels[:,0]}')
             print(f'epoch:{epoch+1}  loss:{los}') # 
             print(f'before_loss:{before_loss}') ## 一個前のepoch loss 
             torch.autograd.set_detect_anomaly(True)
