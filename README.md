@@ -1,6 +1,8 @@
 # Regression with Spiking Neural Network
 SNNを用いて回帰を行うネットワーク。Spiking Neural Unitをpytorchベースで書いています。  
 イベントカメラから出力されるパルスを直接SNNで処理し、回帰タスクを実現。
+![network](https://user-images.githubusercontent.com/82073759/194832484-2c2f8c16-7804-42a2-a080-1e3382dbc9c4.png)
+
 
 # 必要ライブラリ
 使用するライブラリは`conda_emv.yml`に記載してあります。そのファイルから次のコマンドで環境を作ってください。
