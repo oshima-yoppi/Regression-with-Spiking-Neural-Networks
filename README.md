@@ -34,14 +34,14 @@ v2eにより次のように動画をイベントデータに変換できます�
 ![RGB](https://github.com/oshima-yoppi/SNU_torch/blob/bf0eeb282c6cc7c25fda309d9154aa09b9ee3c4b/youtube/douga_.gif)
 
 
-## ネットワーク構造  
+# ネットワーク構造  
 - `model/network.py`にネットワーク構造が記述されています。  
 - `model/snu_layer.py`にSNUの構造が記述されています。  
 - `model/step_func.py`に誤差逆伝搬の代理勾配の構造が定義されています。
-## 学習
+# 学習
 `train3verctor.py`を実行することで、イベントカメラデータを読み込んで、学習を行う。
 
-## 楽手結果のデータ分析 
+# 学習結果のデータ分析 
 `/analysis.py`の"save_loss"という関数を実行することでpandasを用いてcsvに保存する。  
 そこで生成されたcsvを`/analysis/analysis.py`によってグラフ化する。かなり便利。  
 `/analysis_read.py`とかはすごく使いづらいから使わないほうがいいと思う。
