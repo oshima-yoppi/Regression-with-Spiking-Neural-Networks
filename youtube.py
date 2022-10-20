@@ -72,6 +72,7 @@ class LoadDataset(Dataset):
 
 if __name__ == "__main__":
     a = LoadDataset('C:/Users/oosim/Desktop/snn/v2e/output3/', time = 20,)
+    a = LoadDataset('C:/Users/oosim/Desktop/snn/v2e/output_vector/', time = 20,)
     # (time, x, y)
     num = int(input())
     # print(a)
